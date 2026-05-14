@@ -1,62 +1,22 @@
-export type Role = 'donor' | 'ngo_admin'
+import type { Tables, Enums } from './database.types'
 
-export interface Profile {
-  id: string
-  full_name: string
-  role: Role
-  phone: string | null
-  created_at: string
+// ── Enums (derived from DB) ──────────────────────────────────
+export type Role         = Enums<'user_role'>
+export type ItemCategory = Enums<'item_category'>
+export type Urgency      = Enums<'urgency_level'>
+export type NeedStatus   = Enums<'need_status'>
+export type PledgeStatus = Enums<'pledge_status'>
+
+// ── Row types (derived from DB) ──────────────────────────────
+export type Profile  = Tables<'profiles'>
+export type Ngo      = Tables<'ngos'>
+export type Delivery = Tables<'deliveries'>
+
+export type DonationNeed = Tables<'donation_needs'> & {
+  ngo?: Ngo | null
 }
 
-export interface Ngo {
-  id: string
-  admin_id: string
-  name: string
-  location: string
-  registration_number: string | null
-  contact_email: string
-  verified: boolean
-  created_at: string
-}
-
-export type ItemCategory = 'food' | 'clothing' | 'medicine' | 'supplies'
-export type Urgency = 'normal' | 'urgent'
-export type NeedStatus = 'open' | 'matched' | 'closed'
-
-export interface DonationNeed {
-  id: string
-  ngo_id: string
-  item_name: string
-  category: ItemCategory
-  quantity_needed: number
-  quantity_pledged: number
-  urgency: Urgency
-  status: NeedStatus
-  deadline: string
-  description: string | null
-  created_at: string
-  ngo?: Ngo
-}
-
-export type PledgeStatus = 'pending' | 'matched' | 'in_transit' | 'confirmed' | 'rejected'
-
-export interface Pledge {
-  id: string
-  need_id: string
-  donor_id: string
-  quantity: number
-  delivery_date: string
-  notes: string | null
-  status: PledgeStatus
-  created_at: string
-  donation_need?: DonationNeed
-  donor?: Profile
-}
-
-export interface Delivery {
-  id: string
-  pledge_id: string
-  confirmed_by: string
-  confirmed_at: string
-  notes: string | null
+export type Pledge = Tables<'pledges'> & {
+  donation_need?: DonationNeed | null
+  donor?: Pick<Profile, 'full_name' | 'phone'> | null
 }

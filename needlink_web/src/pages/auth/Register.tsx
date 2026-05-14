@@ -60,7 +60,7 @@ export default function Register() {
       return
     }
 
-    const { error: profileError } = await supabase.from('profiles').insert({
+    const { error: profileError } = await supabase.from('profiles').upsert({
       id: data.user.id,
       full_name: fullName,
       role,

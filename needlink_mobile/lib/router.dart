@@ -7,9 +7,15 @@ import 'screens/auth/register_screen.dart';
 import 'screens/donor/donor_home_screen.dart';
 import 'screens/donor/need_detail_screen.dart';
 import 'screens/donor/my_pledges_screen.dart';
+import 'screens/donor/tracking_screen.dart';
+import 'screens/donor/tracking_detail_screen.dart';
+import 'screens/donor/profile_screen.dart';
 import 'screens/ngo/ngo_home_screen.dart';
 import 'screens/ngo/create_need_screen.dart';
 import 'screens/ngo/ngo_pledges_screen.dart';
+import 'screens/ngo/impact_reports_screen.dart';
+import 'screens/ngo/ngo_settings_screen.dart';
+import 'widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -34,28 +40,38 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
 
-      // Donor
-      GoRoute(
-        path: '/donor',
-        builder: (_, __) => const DonorHomeScreen(),
+      // Donor tabs (persistent bottom nav)
+      ShellRoute(
+        builder: (context, state, child) => DonorShell(child: child),
         routes: [
-          GoRoute(
-            path: 'need/:id',
-            builder: (_, state) => NeedDetailScreen(needId: state.pathParameters['id']!),
-          ),
-          GoRoute(path: 'pledges', builder: (_, __) => const MyPledgesScreen()),
+          GoRoute(path: '/donor', builder: (_, __) => const DonorHomeScreen()),
+          GoRoute(path: '/donor/pledges', builder: (_, __) => const MyPledgesScreen()),
+          GoRoute(path: '/donor/tracking', builder: (_, __) => const TrackingScreen()),
+          GoRoute(path: '/donor/profile', builder: (_, __) => const DonorProfileScreen()),
         ],
+      ),
+      // Donor detail screens (no bottom nav)
+      GoRoute(
+        path: '/donor/need/:id',
+        builder: (_, state) => NeedDetailScreen(needId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/donor/tracking/:id',
+        builder: (_, state) => TrackingDetailScreen(pledgeId: state.pathParameters['id']!),
       ),
 
-      // NGO
-      GoRoute(
-        path: '/ngo',
-        builder: (_, __) => const NgoHomeScreen(),
+      // NGO tabs (persistent bottom nav)
+      ShellRoute(
+        builder: (context, state, child) => NgoShell(child: child),
         routes: [
-          GoRoute(path: 'needs/new', builder: (_, __) => const CreateNeedScreen()),
-          GoRoute(path: 'pledges', builder: (_, __) => const NgoPledgesScreen()),
+          GoRoute(path: '/ngo', builder: (_, __) => const NgoHomeScreen()),
+          GoRoute(path: '/ngo/pledges', builder: (_, __) => const NgoPledgesScreen()),
+          GoRoute(path: '/ngo/reports', builder: (_, __) => const ImpactReportsScreen()),
+          GoRoute(path: '/ngo/settings', builder: (_, __) => const NgoSettingsScreen()),
         ],
       ),
+      // NGO detail screens (no bottom nav)
+      GoRoute(path: '/ngo/needs/new', builder: (_, __) => const CreateNeedScreen()),
     ],
   );
 });

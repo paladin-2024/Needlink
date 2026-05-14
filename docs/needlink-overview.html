@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeedLink — Technical Overview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #0891B2;
+      --accent:     #EA580C;
+      --dark:       #071D2C;
+      --surface:    #ffffff;
+      --bg:         #F0F9FF;
+      --muted:      #64748B;
+      --border:     #E2EBF2;
+      --matched:    #16A34A;
+      --urgent:     #EF4444;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--surface);
+      margin: 20px auto;
+      padding: 36px 40px;
+      box-shadow: 0 4px 40px rgba(0,0,0,.10);
+      border-radius: 12px;
+      page-break-after: always;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .logo-block { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #0E7490);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 24px; height: 24px; fill: white; }
+    .logo-text { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+    .logo-tag { font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+    .doc-badge {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 11px; font-weight: 700; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; margin-top: 26px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Intro ── */
+    .intro-block {
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      border: 1px solid #BAE6FD;
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex; gap: 18px; align-items: flex-start;
+    }
+    .intro-icon {
+      width: 48px; height: 48px; min-width: 48px;
+      background: var(--primary); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .intro-icon svg { width: 26px; height: 26px; fill: white; }
+    .intro-title { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+    .intro-desc { font-size: 12.5px; color: #334155; line-height: 1.6; }
+
+    /* ── Platform cards ── */
+    .platform-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .platform-card {
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; background: var(--surface);
+    }
+    .platform-card .p-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+    }
+    .platform-card .p-name { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
+    .platform-card .p-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Roles ── */
+    .roles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .role-card {
+      border-radius: 12px; padding: 16px 18px;
+      border: 1px solid var(--border);
+    }
+    .role-card.donor { background: #F0FDF4; border-color: #BBF7D0; }
+    .role-card.ngo   { background: #FFF7ED; border-color: #FED7AA; }
+    .role-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .role-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .role-name { font-size: 14px; font-weight: 700; }
+    .role-card.donor .role-name { color: var(--matched); }
+    .role-card.ngo   .role-name { color: var(--accent); }
+    .role-card .role-what { font-size: 11.5px; color: #475569; margin-bottom: 10px; }
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .feature-list li {
+      font-size: 11.5px; color: #334155;
+      display: flex; align-items: flex-start; gap: 7px; line-height: 1.45;
+    }
+    .feature-list li::before {
+      content: '→'; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .role-card.donor .feature-list li::before { color: var(--matched); }
+    .role-card.ngo   .feature-list li::before { color: var(--accent); }
+
+    /* ── Flow ── */
+    .flow-row {
+      display: flex; align-items: center; gap: 6px;
+      background: #F8FAFC; border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      flex-wrap: wrap;
+    }
+    .flow-step {
+      background: var(--primary); color: white;
+      border-radius: 8px; padding: 5px 12px;
+      font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    }
+    .flow-arrow { color: var(--muted); font-size: 16px; font-weight: 600; }
+
+    /* ── Page 2 ── */
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .data-card {
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; background: var(--surface);
+    }
+    .data-card .d-name {
+      font-size: 12.5px; font-weight: 700; color: var(--dark);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .data-card .d-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; background: var(--bg); color: var(--primary);
+      border: 1px solid #BAE6FD;
+    }
+    .data-card .d-fields { display: flex; flex-direction: column; gap: 4px; }
+    .data-card .d-field {
+      font-size: 11px; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .data-card .d-field span { color: var(--dark); font-weight: 500; }
+
+    /* ── Stack pills ── */
+    .stack-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stack-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: #F8FAFC; border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 13px;
+    }
+    .pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stack-pill .pill-name { font-size: 12px; font-weight: 700; color: var(--dark); }
+    .stack-pill .pill-role { font-size: 10.5px; color: var(--muted); }
+
+    /* ── Status chips ── */
+    .status-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      font-size: 11px; font-weight: 600; padding: 4px 12px;
+      border-radius: 20px; border: 1px solid;
+    }
+    .chip.open     { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+    .chip.matched  { background: #F0FDF4; color: var(--matched); border-color: #BBF7D0; }
+    .chip.closed   { background: #F8FAFC; color: var(--muted);   border-color: var(--border); }
+    .chip.pending  { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+    .chip.confirmed{ background: #F0FDF4; color: var(--matched); border-color: #BBF7D0; }
+    .chip.rejected { background: #FEF2F2; color: var(--urgent);  border-color: #FECACA; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 30px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-left { font-size: 10.5px; color: var(--muted); }
+    .footer-right { font-size: 10.5px; color: var(--muted); }
+    .page-num {
+      display: inline-block; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 2px 9px; font-weight: 600; color: var(--primary);
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; }
+      .page { margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 1
+═══════════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-block">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">NeedLink</div>
+        <div class="logo-tag">Connecting Donors with NGOs in Need</div>
+      </div>
+    </div>
+    <div class="doc-badge">Technical Overview</div>
+  </div>
+
+  <!-- What is NeedLink -->
+  <div class="intro-block">
+    <div class="intro-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+    </div>
+    <div>
+      <div class="intro-title">What is NeedLink?</div>
+      <div class="intro-desc">
+        NeedLink is a platform that connects <strong>donors</strong> (people who want to give) with
+        <strong>NGOs</strong> (organizations that help communities). NGOs post what they need — food,
+        clothing, medicine, school supplies — and donors can find those needs, make a pledge, and track
+        their donation from start to delivery.
+      </div>
+    </div>
+  </div>
+
+  <!-- Platforms -->
+  <div class="section-title">The Three Parts of the System</div>
+  <div class="platform-grid">
+    <div class="platform-card">
+      <div class="p-icon" style="background:#E0F2FE;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0891B2"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+      </div>
+      <div class="p-name">Mobile App</div>
+      <div class="p-desc">The app donors and NGO staff use every day — browse needs, make pledges, track deliveries, manage requests.</div>
+    </div>
+    <div class="platform-card">
+      <div class="p-icon" style="background:#FFF7ED;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#EA580C"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12z"/></svg>
+      </div>
+      <div class="p-name">Web Portal</div>
+      <div class="p-desc">A website for NGOs to register their organization and manage their account before using the mobile app.</div>
+    </div>
+    <div class="platform-card">
+      <div class="p-icon" style="background:#F0FDF4;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#16A34A"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zm-2 6H6v-4h12v4zm2-16H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zm-2 4H6V5h12v2z"/></svg>
+      </div>
+      <div class="p-name">Database</div>
+      <div class="p-desc">Stores all data securely — user accounts, NGO profiles, donation needs, pledges, and delivery records.</div>
+    </div>
+  </div>
+
+  <!-- User Roles -->
+  <div class="section-title">Who Uses NeedLink</div>
+  <div class="roles-grid">
+    <div class="role-card donor">
+      <div class="role-header">
+        <div class="role-dot" style="background:#16A34A;"></div>
+        <div class="role-name">Donor</div>
+      </div>
+      <div class="role-what">A person who wants to donate items to a good cause.</div>
+      <ul class="feature-list">
+        <li>Browse donation needs posted by NGOs</li>
+        <li>Filter by category (food, clothing, medicine…)</li>
+        <li>Make a pledge and set a delivery date</li>
+        <li>Track their pledge from pending to delivered</li>
+        <li>View their donation history and stats</li>
+      </ul>
+    </div>
+    <div class="role-card ngo">
+      <div class="role-header">
+        <div class="role-dot" style="background:#EA580C;"></div>
+        <div class="role-name">NGO Admin</div>
+      </div>
+      <div class="role-what">A staff member who manages their organization's needs.</div>
+      <ul class="feature-list">
+        <li>Post donation needs with details and deadlines</li>
+        <li>Mark requests as urgent when critical</li>
+        <li>Review and confirm incoming pledges</li>
+        <li>Track progress toward each goal</li>
+        <li>View impact reports and summaries</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="section-title">How a Donation Works (Step by Step)</div>
+  <div class="flow-row">
+    <div class="flow-step">NGO posts a need</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-step">Donor discovers it</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-step">Donor makes a pledge</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-step">NGO confirms pledge</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-step">Items delivered</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-step">Delivery recorded</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">NeedLink Platform · Internal Technical Overview · May 2026</div>
+    <div class="footer-right"><span class="page-num">1 / 2</span></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 2
+═══════════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-block">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" fill="white"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">NeedLink</div>
+        <div class="logo-tag">Technical Overview · Continued</div>
+      </div>
+    </div>
+    <div class="doc-badge">Technical Overview</div>
+  </div>
+
+  <!-- Data stored -->
+  <div class="section-title">What Data the System Stores</div>
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="d-name">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#0891B2"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        User Accounts
+        <span class="d-badge">profiles</span>
+      </div>
+      <div class="d-fields">
+        <div class="d-field"><span>Full name</span> · the person's display name</div>
+        <div class="d-field"><span>Role</span> · either "donor" or "ngo admin"</div>
+        <div class="d-field"><span>Phone</span> · optional contact number</div>
+        <div class="d-field"><span>Linked to</span> · their login account (email + password)</div>
+      </div>
+    </div>
+    <div class="data-card">
+      <div class="d-name">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#EA580C"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+        NGO Profiles
+        <span class="d-badge">ngos</span>
+      </div>
+      <div class="d-fields">
+        <div class="d-field"><span>Name</span> · organization name</div>
+        <div class="d-field"><span>Location</span> · where they operate</div>
+        <div class="d-field"><span>Contact email</span> · public contact address</div>
+        <div class="d-field"><span>Verified</span> · whether the NGO is approved</div>
+      </div>
+    </div>
+    <div class="data-card">
+      <div class="d-name">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#16A34A"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+        Donation Needs
+        <span class="d-badge">donation_needs</span>
+      </div>
+      <div class="d-fields">
+        <div class="d-field"><span>Item name</span> · what is needed (e.g. "Rice bags")</div>
+        <div class="d-field"><span>Category</span> · food / clothing / medicine / supplies</div>
+        <div class="d-field"><span>Quantity</span> · how many are needed and pledged so far</div>
+        <div class="d-field"><span>Deadline</span> · when the items are needed by</div>
+        <div class="d-field"><span>Urgency</span> · normal or urgent</div>
+      </div>
+    </div>
+    <div class="data-card">
+      <div class="d-name">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#7C3AED"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z"/></svg>
+        Pledges
+        <span class="d-badge">pledges</span>
+      </div>
+      <div class="d-fields">
+        <div class="d-field"><span>Quantity</span> · how many units the donor is giving</div>
+        <div class="d-field"><span>Delivery date</span> · when the donor will bring them</div>
+        <div class="d-field"><span>Notes</span> · any special instructions</div>
+        <div class="d-field"><span>Status</span> · pending, confirmed, or rejected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status system -->
+  <div class="section-title">Status Labels Used in the App</div>
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <div style="display:flex; align-items:center; gap:14px; font-size:11.5px;">
+      <div style="min-width:110px; font-weight:600; color:var(--muted);">Donation Need</div>
+      <div class="status-row">
+        <span class="chip open">Open — accepting donations</span>
+        <span class="chip matched">Matched — goal reached</span>
+        <span class="chip closed">Closed — no longer active</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px; font-size:11.5px;">
+      <div style="min-width:110px; font-weight:600; color:var(--muted);">Pledge</div>
+      <div class="status-row">
+        <span class="chip pending">Pending — waiting for NGO review</span>
+        <span class="chip confirmed">Confirmed — NGO accepted it</span>
+        <span class="chip rejected">Rejected — NGO declined</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech stack -->
+  <div class="section-title">Technologies Used</div>
+  <div class="stack-row">
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#0891B2;"></div>
+      <div>
+        <div class="pill-name">Flutter</div>
+        <div class="pill-role">Mobile app (Android &amp; iOS)</div>
+      </div>
+    </div>
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#3178C6;"></div>
+      <div>
+        <div class="pill-name">React + TypeScript</div>
+        <div class="pill-role">Web portal</div>
+      </div>
+    </div>
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#3ECF8E;"></div>
+      <div>
+        <div class="pill-name">Supabase</div>
+        <div class="pill-role">Database, login, security</div>
+      </div>
+    </div>
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#336791;"></div>
+      <div>
+        <div class="pill-name">PostgreSQL</div>
+        <div class="pill-role">Underlying data storage</div>
+      </div>
+    </div>
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#EA580C;"></div>
+      <div>
+        <div class="pill-name">Riverpod</div>
+        <div class="pill-role">App state management</div>
+      </div>
+    </div>
+    <div class="stack-pill">
+      <div class="pill-dot" style="background:#16A34A;"></div>
+      <div>
+        <div class="pill-name">Row-Level Security</div>
+        <div class="pill-role">Users only see their own data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security note -->
+  <div style="margin-top:20px; padding:14px 18px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; display:flex; gap:12px; align-items:flex-start;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#16A34A" style="margin-top:1px; flex-shrink:0;"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+    <div>
+      <div style="font-size:12.5px; font-weight:700; color:#166534; margin-bottom:3px;">Data Privacy &amp; Security</div>
+      <div style="font-size:11.5px; color:#166534; line-height:1.55;">
+        Every user can only see data that belongs to them. Donors see only their own pledges. NGO admins see only their own organization's data. This is enforced at the database level — not just in the app — so there is no way for data to accidentally leak between users.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">NeedLink Platform · Internal Technical Overview · May 2026</div>
+    <div class="footer-right"><span class="page-num">2 / 2</span></div>
+  </div>
+</div>
+
+</body>
+</html>
