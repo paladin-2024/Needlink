@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models.dart';
+import '../../providers.dart';
 import '../../theme.dart';
 
-class NeedDetailScreen extends StatefulWidget {
+class NeedDetailScreen extends ConsumerStatefulWidget {
   final String needId;
   const NeedDetailScreen({super.key, required this.needId});
   @override
-  State<NeedDetailScreen> createState() => _NeedDetailScreenState();
+  ConsumerState<NeedDetailScreen> createState() => _NeedDetailScreenState();
 }
 
-class _NeedDetailScreenState extends State<NeedDetailScreen> {
+class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
   DonationNeed? _need;
   bool _loading = true;
   bool _pledging = false;
@@ -44,6 +46,9 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
         'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text.trim() : null,
       });
       // quantity_pledged and status are updated atomically by a DB trigger — not here.
+      ref.invalidate(myPledgesProvider);
+      ref.invalidate(donationNeedsProvider);
+      ref.invalidate(myNgoPendingPledgesProvider);
       setState(() { _success = true; _pledging = false; });
     } catch (e) {
       setState(() { _error = e.toString(); _pledging = false; });

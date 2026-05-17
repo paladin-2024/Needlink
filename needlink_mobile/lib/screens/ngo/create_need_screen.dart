@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../providers.dart';
 import '../../theme.dart';
 
-class CreateNeedScreen extends StatefulWidget {
+class CreateNeedScreen extends ConsumerStatefulWidget {
   const CreateNeedScreen({super.key});
   @override
-  State<CreateNeedScreen> createState() => _CreateNeedScreenState();
+  ConsumerState<CreateNeedScreen> createState() => _CreateNeedScreenState();
 }
 
-class _CreateNeedScreenState extends State<CreateNeedScreen> {
+class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
   int _step = 0;
 
   final _itemCtrl = TextEditingController();
@@ -58,6 +60,9 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
         'deadline': DateFormat('yyyy-MM-dd').format(_deadline!),
         'description': _descCtrl.text.isNotEmpty ? _descCtrl.text.trim() : null,
       });
+      // Bust both caches so the new need appears immediately on return.
+      ref.invalidate(myNgoNeedsProvider);
+      ref.invalidate(donationNeedsProvider);
       setState(() { _published = true; _loading = false; });
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });

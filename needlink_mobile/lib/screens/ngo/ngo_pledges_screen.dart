@@ -67,6 +67,9 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
             .update({'quantity_pledged': newPledged, 'status': newStatus}).eq('id', pledge['need_id']);
       }
       await _load();
+      ref.invalidate(myNgoPendingPledgesProvider);
+      ref.invalidate(myNgoNeedsProvider);
+      ref.invalidate(donationNeedsProvider);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
