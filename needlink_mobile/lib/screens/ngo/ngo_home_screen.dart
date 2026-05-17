@@ -145,6 +145,7 @@ class NgoHomeScreen extends ConsumerWidget {
                             onRefresh: () {
                               ref.invalidate(myNgoPendingPledgesProvider);
                               ref.invalidate(myNgoNeedsProvider);
+                              ref.invalidate(donationNeedsProvider);
                             },
                           )),
                         ],

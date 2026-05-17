@@ -8,8 +8,11 @@ class Profile {
   const Profile({required this.id, required this.fullName, required this.role, this.phone, required this.createdAt});
 
   factory Profile.fromJson(Map<String, dynamic> j) => Profile(
-    id: j['id'], fullName: j['full_name'], role: j['role'],
-    phone: j['phone'], createdAt: j['created_at'],
+    id: j['id'] as String,
+    fullName: (j['full_name'] as String?) ?? '',
+    role: (j['role'] as String?) ?? 'donor',
+    phone: j['phone'] as String?,
+    createdAt: (j['created_at'] as String?) ?? '',
   );
 }
 
@@ -30,10 +33,14 @@ class Ngo {
   });
 
   factory Ngo.fromJson(Map<String, dynamic> j) => Ngo(
-    id: j['id'], adminId: j['admin_id'], name: j['name'],
-    location: j['location'], registrationNumber: j['registration_number'],
-    contactEmail: j['contact_email'], verified: j['verified'] ?? false,
-    createdAt: j['created_at'],
+    id: j['id'] as String,
+    adminId: (j['admin_id'] as String?) ?? '',
+    name: (j['name'] as String?) ?? '',
+    location: (j['location'] as String?) ?? '',
+    registrationNumber: j['registration_number'] as String?,
+    contactEmail: (j['contact_email'] as String?) ?? '',
+    verified: (j['verified'] as bool?) ?? false,
+    createdAt: (j['created_at'] as String?) ?? '',
   );
 }
 
@@ -59,12 +66,18 @@ class DonationNeed {
   });
 
   factory DonationNeed.fromJson(Map<String, dynamic> j) => DonationNeed(
-    id: j['id'], ngoId: j['ngo_id'], itemName: j['item_name'],
-    category: j['category'], quantityNeeded: j['quantity_needed'],
-    quantityPledged: j['quantity_pledged'] ?? 0, urgency: j['urgency'],
-    status: j['status'], deadline: j['deadline'],
-    description: j['description'], createdAt: j['created_at'],
-    ngo: j['ngo'] != null ? Ngo.fromJson(j['ngo']) : null,
+    id: j['id'] as String,
+    ngoId: (j['ngo_id'] as String?) ?? '',
+    itemName: (j['item_name'] as String?) ?? '',
+    category: (j['category'] as String?) ?? 'supplies',
+    quantityNeeded: (j['quantity_needed'] as int?) ?? 0,
+    quantityPledged: (j['quantity_pledged'] as int?) ?? 0,
+    urgency: (j['urgency'] as String?) ?? 'normal',
+    status: (j['status'] as String?) ?? 'open',
+    deadline: (j['deadline'] as String?) ?? '',
+    description: j['description'] as String?,
+    createdAt: (j['created_at'] as String?) ?? '',
+    ngo: j['ngo'] != null ? Ngo.fromJson(j['ngo'] as Map<String, dynamic>) : null,
   );
 
   double get progress => quantityNeeded > 0 ? (quantityPledged / quantityNeeded).clamp(0.0, 1.0) : 0;
@@ -92,10 +105,15 @@ class Pledge {
   });
 
   factory Pledge.fromJson(Map<String, dynamic> j) => Pledge(
-    id: j['id'], needId: j['need_id'], donorId: j['donor_id'],
-    quantity: j['quantity'], deliveryDate: j['delivery_date'],
-    notes: j['notes'], status: j['status'], createdAt: j['created_at'],
-    donationNeed: j['donation_need'] != null ? DonationNeed.fromJson(j['donation_need']) : null,
-    donor: j['donor'] != null ? Profile.fromJson(j['donor']) : null,
+    id: j['id'] as String,
+    needId: (j['need_id'] as String?) ?? '',
+    donorId: (j['donor_id'] as String?) ?? '',
+    quantity: (j['quantity'] as int?) ?? 0,
+    deliveryDate: (j['delivery_date'] as String?) ?? '',
+    notes: j['notes'] as String?,
+    status: (j['status'] as String?) ?? 'pending',
+    createdAt: (j['created_at'] as String?) ?? '',
+    donationNeed: j['donation_need'] != null ? DonationNeed.fromJson(j['donation_need'] as Map<String, dynamic>) : null,
+    donor: j['donor'] != null ? Profile.fromJson(j['donor'] as Map<String, dynamic>) : null,
   );
 }

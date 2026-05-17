@@ -9,6 +9,9 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 });
 
 final currentUserProvider = Provider<User?>((ref) {
+  // Watch the auth stream so this re-derives on every sign-in/out event,
+  // preventing stale user IDs being passed to profileProvider etc.
+  ref.watch(authStateProvider);
   return Supabase.instance.client.auth.currentUser;
 });
 

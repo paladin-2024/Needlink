@@ -30,9 +30,13 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    final data = await Supabase.instance.client
-        .from('donation_needs').select('*, ngo:ngos(*)').eq('id', widget.needId).single();
-    setState(() { _need = DonationNeed.fromJson(data); _loading = false; });
+    try {
+      final data = await Supabase.instance.client
+          .from('donation_needs').select('*, ngo:ngos(*)').eq('id', widget.needId).single();
+      setState(() { _need = DonationNeed.fromJson(data); _loading = false; });
+    } catch (e) {
+      setState(() { _loading = false; _error = e.toString(); });
+    }
   }
 
   Future<void> _submitPledge() async {

@@ -45,7 +45,7 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
             titleSpacing: 16,
             title: profileAsync.when(
               data: (p) {
-                final name = p?.fullName.split(' ').first ?? 'there';
+                final name = (p?.fullName.isNotEmpty == true) ? p!.fullName.split(' ').first : 'there';
                 return Text('Hello, $name', style: GoogleFonts.sora(
                   fontSize: 18, fontWeight: FontWeight.w800, color: kForeground,
                 ));

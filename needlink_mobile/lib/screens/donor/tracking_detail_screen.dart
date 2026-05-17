@@ -16,22 +16,28 @@ class TrackingDetailScreen extends StatefulWidget {
 class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
   Pledge? _pledge;
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    final data = await Supabase.instance.client
-        .from('pledges')
-        .select('*, donation_need:donation_needs(*, ngo:ngos(*))')
-        .eq('id', widget.pledgeId)
-        .single();
-    setState(() { _pledge = Pledge.fromJson(data); _loading = false; });
+    try {
+      final data = await Supabase.instance.client
+          .from('pledges')
+          .select('*, donation_need:donation_needs(*, ngo:ngos(*))')
+          .eq('id', widget.pledgeId)
+          .single();
+      setState(() { _pledge = Pledge.fromJson(data); _loading = false; });
+    } catch (e) {
+      setState(() { _loading = false; _error = e.toString(); });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)));
+    if (_error != null) return Scaffold(body: Center(child: Text('Error: $_error', style: const TextStyle(color: kUrgent))));
     if (_pledge == null) return const Scaffold(body: Center(child: Text('Not found')));
 
     final p = _pledge!;

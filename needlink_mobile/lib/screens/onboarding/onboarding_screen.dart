@@ -106,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    slide.accent.withOpacity(0.18),
+                    slide.accent.withValues(alpha: 0.18),
                     Colors.transparent,
                   ],
                 ),
@@ -181,13 +181,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           gradient: LinearGradient(
                             colors: [
                               slide.accent,
-                              slide.accent.withOpacity(0.75),
+                              slide.accent.withValues(alpha: 0.75),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: slide.accent.withOpacity(0.35),
+                              color: slide.accent.withValues(alpha: 0.35),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             )
@@ -342,7 +342,7 @@ class _Dot extends StatelessWidget {
         color: active ? color : const Color(0xFF1A3A4A),
         borderRadius: BorderRadius.circular(3),
         boxShadow: active
-            ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8, spreadRadius: 0)]
+            ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 0)]
             : null,
       ),
     );
@@ -390,7 +390,7 @@ class _MiniLogoPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(s * 0.80, s * 0.81),
       s * 0.043,
-      Paint()..color = const Color(0xFF0AC8EC).withOpacity(0.9),
+      Paint()..color = const Color(0xFF0AC8EC).withValues(alpha: 0.9),
     );
   }
 

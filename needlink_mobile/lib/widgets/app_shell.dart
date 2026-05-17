@@ -14,7 +14,7 @@ class DonorShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    final index = _tabs.indexWhere((t) => location.startsWith(t.path)).clamp(0, _tabs.length - 1);
+    final index = _tabs.indexWhere((t) => location == t.path || location.startsWith('${t.path}/')).clamp(0, _tabs.length - 1);
     return Scaffold(
       body: child,
       bottomNavigationBar: _AppNav(
@@ -40,7 +40,7 @@ class NgoShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    final index = _tabs.indexWhere((t) => location.startsWith(t.path)).clamp(0, _tabs.length - 1);
+    final index = _tabs.indexWhere((t) => location == t.path || location.startsWith('${t.path}/')).clamp(0, _tabs.length - 1);
     return Scaffold(
       body: child,
       bottomNavigationBar: _AppNav(

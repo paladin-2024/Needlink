@@ -50,14 +50,30 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    final data = await Supabase.instance.client
+    var profileData = await Supabase.instance.client
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
 
+    if (profileData == null) {
+      // First OAuth sign-in — no profile row exists yet. Create one now using
+      // the role the user selected in the register screen (stored before OAuth
+      // opened the browser), or default to 'donor'.
+      final prefs = await SharedPreferences.getInstance();
+      final role = prefs.getString('pending_oauth_role') ?? 'donor';
+      final name = (user.userMetadata?['full_name'] as String?)
+          ?? (user.userMetadata?['name'] as String?)
+          ?? '';
+      await Supabase.instance.client.from('profiles').upsert({
+        'id': user.id, 'full_name': name, 'role': role,
+      }, onConflict: 'id', ignoreDuplicates: true);
+      await prefs.remove('pending_oauth_role');
+      profileData = {'role': role};
+    }
+
     if (!mounted) return;
-    context.go(data?['role'] == 'ngo_admin' ? '/ngo' : '/donor');
+    context.go(profileData['role'] == 'ngo_admin' ? '/ngo' : '/donor');
   }
 
   @override
@@ -85,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   radius: 0.85,
                   colors: [
                     Colors.transparent,
-                    const Color(0xFF071D2C).withOpacity(0.7),
+                    const Color(0xFF071D2C).withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -212,7 +228,7 @@ class _LogoPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = Colors.white.withOpacity(0.07)
+        ..color = Colors.white.withValues(alpha: 0.07)
         ..style = PaintingStyle.stroke
         ..strokeWidth = s * 0.127
         ..strokeCap = StrokeCap.round
@@ -230,7 +246,7 @@ class _LogoPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(x3, y2),
       s * 0.043,
-      Paint()..color = const Color(0xFF0AC8EC).withOpacity(0.9),
+      Paint()..color = const Color(0xFF0AC8EC).withValues(alpha: 0.9),
     );
   }
 

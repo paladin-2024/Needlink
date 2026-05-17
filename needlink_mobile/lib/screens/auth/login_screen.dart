@@ -49,11 +49,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       );
       if (!mounted) return;
       final profile = await Supabase.instance.client
-          .from('profiles').select('role').eq('id', res.user!.id).single();
+          .from('profiles').select('role').eq('id', res.user!.id).maybeSingle();
       if (!mounted) return;
-      context.go(profile['role'] == 'ngo_admin' ? '/ngo' : '/donor');
+      context.go(profile?['role'] == 'ngo_admin' ? '/ngo' : '/donor');
     } on AuthException catch (e) {
       setState(() { _error = e.message; _loading = false; });
+    } catch (e) {
+      setState(() { _error = e.toString(); _loading = false; });
     }
   }
 

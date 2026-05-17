@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme.dart';
 import '../../widgets/auth_widgets.dart';
@@ -86,6 +87,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   Future<void> _googleSignIn() async {
     setState(() { _googleLoading = true; _error = null; });
     try {
+      // Persist the selected role before opening the browser — SplashScreen
+      // reads this after the OAuth redirect to create the profile correctly.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pending_oauth_role', _role);
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.needlink.app://login-callback',

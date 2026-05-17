@@ -62,7 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       // Handles the OAuth deep link path after scheme stripping
-      GoRoute(path: '/login-callback', redirect: (_, __) => '/splash'),
+      GoRoute(path: '/login-callback', redirect: (_, _) => '/splash'),
 
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),

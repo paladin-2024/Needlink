@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models.dart';
 import '../../providers.dart';
 import '../../theme.dart';
 
@@ -105,7 +107,15 @@ class DonorProfileScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 14),
                             OutlinedButton.icon(
-                              onPressed: () {},
+                              onPressed: profile != null ? () => showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => _EditProfileSheet(
+                                  profile: profile,
+                                  onSaved: () => ref.invalidate(profileProvider),
+                                ),
+                              ) : null,
                               icon: const Icon(Icons.edit_outlined, size: 15, color: Colors.white),
                               label: Text('Edit Profile', style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12, color: Colors.white,
@@ -161,9 +171,25 @@ class DonorProfileScreen extends ConsumerWidget {
                     )),
                     const SizedBox(height: 10),
                     _SettingsGroup(shadow: _shadow, items: [
-                      _SettingsTile(Icons.notifications_outlined, 'Notification Preferences', () {}),
-                      _SettingsTile(Icons.visibility_outlined, 'Profile Visibility', () {}),
-                      _SettingsTile(Icons.lock_outline_rounded, 'Privacy & Safety', () {}),
+                      _SettingsTile(Icons.notifications_outlined, 'Notification Preferences', () {
+                        showModalBottomSheet(
+                          context: context, isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const _NotifPrefsSheet(),
+                        );
+                      }),
+                      _SettingsTile(Icons.visibility_outlined, 'Profile Visibility', () {
+                        showModalBottomSheet(
+                          context: context, backgroundColor: Colors.transparent,
+                          builder: (_) => const _VisibilitySheet(),
+                        );
+                      }),
+                      _SettingsTile(Icons.lock_outline_rounded, 'Privacy & Safety', () {
+                        showModalBottomSheet(
+                          context: context, backgroundColor: Colors.transparent,
+                          builder: (_) => const _PrivacySheet(),
+                        );
+                      }),
                     ]),
                     const SizedBox(height: 12),
                     _SettingsGroup(shadow: _shadow, items: [
@@ -307,6 +333,324 @@ class _SettingsTile extends StatelessWidget {
     onTap: onTap,
     dense: true,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+  );
+}
+
+// ── Edit Profile sheet ────────────────────────────────────────────────────────
+
+class _EditProfileSheet extends StatefulWidget {
+  final Profile profile;
+  final VoidCallback onSaved;
+  const _EditProfileSheet({required this.profile, required this.onSaved});
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.profile.fullName);
+    _phoneCtrl = TextEditingController(text: widget.profile.phone ?? '');
+  }
+
+  @override
+  void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); super.dispose(); }
+
+  Future<void> _save() async {
+    if (_nameCtrl.text.trim().isEmpty) { setState(() => _error = 'Name cannot be empty'); return; }
+    setState(() { _saving = true; _error = null; });
+    try {
+      await Supabase.instance.client.from('profiles').update({
+        'full_name': _nameCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim().isNotEmpty ? _phoneCtrl.text.trim() : null,
+      }).eq('id', widget.profile.id);
+      widget.onSaved();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      setState(() { _error = e.toString(); _saving = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 32),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        Text('Edit Profile', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
+        const SizedBox(height: 20),
+        if (_error != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFECACA)),
+            ),
+            child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 13)),
+          ),
+          const SizedBox(height: 12),
+        ],
+        TextField(
+          controller: _nameCtrl,
+          decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline_rounded)),
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _phoneCtrl,
+          decoration: const InputDecoration(labelText: 'Phone (optional)', prefixIcon: Icon(Icons.phone_outlined)),
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          height: 50,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kPrimary, elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              disabledBackgroundColor: kPrimary.withValues(alpha: 0.5),
+            ),
+            child: _saving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : Text('Save Changes', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 15)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ── Notification preferences sheet ───────────────────────────────────────────
+
+class _NotifPrefsSheet extends StatefulWidget {
+  const _NotifPrefsSheet();
+  @override
+  State<_NotifPrefsSheet> createState() => _NotifPrefsSheetState();
+}
+
+class _NotifPrefsSheetState extends State<_NotifPrefsSheet> {
+  bool _newNeeds = true;
+  bool _pledgeUpdates = true;
+  bool _ngoAnnouncements = false;
+  bool _loaded = false;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _newNeeds = prefs.getBool('notif_new_needs') ?? true;
+      _pledgeUpdates = prefs.getBool('notif_pledge_updates') ?? true;
+      _ngoAnnouncements = prefs.getBool('notif_ngo_announcements') ?? false;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _set(String key, bool v) async => (await SharedPreferences.getInstance()).setBool(key, v);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        Text('Notification Preferences', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
+        const SizedBox(height: 4),
+        Text('Choose what you want to be notified about', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
+        const SizedBox(height: 20),
+        if (!_loaded)
+          const Center(child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
+          ))
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
+            ),
+            child: Column(children: [
+              _NotifToggle(icon: Icons.inventory_2_outlined, title: 'New Donation Needs',
+                subtitle: 'When NGOs post items you can give', value: _newNeeds,
+                onChanged: (v) { setState(() => _newNeeds = v); _set('notif_new_needs', v); }),
+              const Divider(height: 1, color: kBorder),
+              _NotifToggle(icon: Icons.volunteer_activism_outlined, title: 'Pledge Updates',
+                subtitle: 'When your pledges are confirmed or rejected', value: _pledgeUpdates,
+                onChanged: (v) { setState(() => _pledgeUpdates = v); _set('notif_pledge_updates', v); }),
+              const Divider(height: 1, color: kBorder),
+              _NotifToggle(icon: Icons.campaign_outlined, title: 'NGO Announcements',
+                subtitle: 'Updates from organisations you support', value: _ngoAnnouncements,
+                onChanged: (v) { setState(() => _ngoAnnouncements = v); _set('notif_ngo_announcements', v); }),
+            ]),
+          ),
+      ]),
+    );
+  }
+}
+
+class _NotifToggle extends StatelessWidget {
+  final IconData icon;
+  final String title, subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _NotifToggle({required this.icon, required this.title, required this.subtitle, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    child: Row(children: [
+      Icon(icon, size: 18, color: kMutedFg),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: kForeground)),
+        Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: kMutedFg)),
+      ])),
+      Switch(value: value, onChanged: onChanged, activeThumbColor: kPrimary, activeTrackColor: kPrimary.withValues(alpha: 0.4)),
+    ]),
+  );
+}
+
+// ── Profile visibility sheet ──────────────────────────────────────────────────
+
+class _VisibilitySheet extends StatefulWidget {
+  const _VisibilitySheet();
+  @override
+  State<_VisibilitySheet> createState() => _VisibilitySheetState();
+}
+
+class _VisibilitySheetState extends State<_VisibilitySheet> {
+  bool _publicProfile = true;
+  bool _showDonations = true;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _publicProfile = prefs.getBool('visibility_public') ?? true;
+      _showDonations = prefs.getBool('visibility_donations') ?? true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        Text('Profile Visibility', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
+        const SizedBox(height: 4),
+        Text('Control what others can see about you', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
+        const SizedBox(height: 20),
+        Container(
+          decoration: BoxDecoration(
+            color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
+          ),
+          child: Column(children: [
+            SwitchListTile(
+              title: Text('Public Profile', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: kForeground)),
+              subtitle: const Text('NGOs can see your name and contact info', style: TextStyle(fontSize: 12, color: kMutedFg)),
+              value: _publicProfile, activeThumbColor: kPrimary, activeTrackColor: kPrimary.withValues(alpha: 0.4), dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              onChanged: (v) async {
+                setState(() => _publicProfile = v);
+                (await SharedPreferences.getInstance()).setBool('visibility_public', v);
+              },
+            ),
+            const Divider(height: 1, color: kBorder),
+            SwitchListTile(
+              title: Text('Show My Donations', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: kForeground)),
+              subtitle: const Text('Display your contribution history publicly', style: TextStyle(fontSize: 12, color: kMutedFg)),
+              value: _showDonations, activeThumbColor: kPrimary, activeTrackColor: kPrimary.withValues(alpha: 0.4), dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              onChanged: (v) async {
+                setState(() => _showDonations = v);
+                (await SharedPreferences.getInstance()).setBool('visibility_donations', v);
+              },
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+// ── Privacy & Safety sheet ────────────────────────────────────────────────────
+
+class _PrivacySheet extends StatelessWidget {
+  const _PrivacySheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        Text('Privacy & Safety', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
+        const SizedBox(height: 20),
+        _PrivacyItem(icon: Icons.shield_rounded, iconColor: kMatched,
+          title: 'Encryption',
+          body: 'All personal data is encrypted in transit and at rest using industry-standard TLS.'),
+        const SizedBox(height: 10),
+        _PrivacyItem(icon: Icons.lock_outline_rounded, iconColor: kPrimary,
+          title: 'Data We Collect',
+          body: 'Name, email, phone, and donation history only. We never sell your data or share it outside NeedLink operations.'),
+        const SizedBox(height: 10),
+        _PrivacyItem(icon: Icons.delete_forever_rounded, iconColor: const Color(0xFFDC2626),
+          title: 'Delete My Data',
+          body: 'To request full account deletion and data removal, contact support@needlink.app.'),
+      ]),
+    );
+  }
+}
+
+class _PrivacyItem extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title, body;
+  const _PrivacyItem({required this.icon, required this.iconColor, required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(12), border: Border.all(color: kBorder)),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(color: iconColor.withAlpha(20), borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, size: 18, color: iconColor),
+      ),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: kForeground)),
+        const SizedBox(height: 3),
+        Text(body, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: kMutedFg, height: 1.5)),
+      ])),
+    ]),
   );
 }
 
