@@ -52,14 +52,25 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
       );
-      final uid = res.user!.id;
-      await Supabase.instance.client.from('profiles').insert({
-        'id': uid, 'full_name': _nameCtrl.text.trim(),
+
+      // Supabase silently "succeeds" for existing emails — identities is empty in that case.
+      final user = res.user;
+      if (user == null || (user.identities?.isEmpty ?? true)) {
+        setState(() {
+          _error = 'An account with this email already exists. Sign in instead.';
+          _loading = false;
+        });
+        return;
+      }
+
+      await Supabase.instance.client.from('profiles').upsert({
+        'id': user.id, 'full_name': _nameCtrl.text.trim(),
         'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
-      });
+      }, onConflict: 'id', ignoreDuplicates: true);
+
       if (_role == 'ngo_admin') {
         await Supabase.instance.client.from('ngos').insert({
-          'admin_id': uid, 'name': _ngoNameCtrl.text.trim(),
+          'admin_id': user.id, 'name': _ngoNameCtrl.text.trim(),
           'location': _ngoLocCtrl.text.trim(), 'contact_email': _emailCtrl.text.trim(),
         });
       }
