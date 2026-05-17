@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Building2, Users, Package,
-  ArrowLeftRight, BarChart3, Settings2, LogOut,
+  ArrowLeftRight, BarChart3, Settings2, LogOut, Bell,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import NeedLinkLogo from './NeedLinkLogo'
@@ -12,6 +12,7 @@ const MANAGEMENT = [
   { path: '/admin/ngos',     label: 'NGOs',       Icon: Building2 },
   { path: '/admin/users',    label: 'Donors',     Icon: Users },
   { path: '/admin/needs',    label: 'Needs',      Icon: Package },
+  { path: '/admin/notices',  label: 'Notices',    Icon: Bell },
 ]
 
 const SYSTEM = [
@@ -20,32 +21,23 @@ const SYSTEM = [
   { path: '/admin/settings', label: 'Settings',   Icon: Settings2 },
 ]
 
-function NavItem({ path, label, Icon }: { path: string; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }) {
+function NavItem({ path, label, Icon }: { path: string; label: string; Icon: React.ComponentType<{ size?: number }> }) {
   return (
     <NavLink
       to={path}
       className={({ isActive }) =>
-        `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+        `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-150 ${
           isActive
-            ? 'text-[#7BC5D4]'
-            : 'text-[#4A6B7A] hover:text-[#7BC5D4] hover:bg-white/[0.04]'
+            ? 'text-white font-semibold'
+            : 'font-medium text-[#4A6B7A] hover:text-[#8DCFDF] hover:bg-white/[0.04]'
         }`
       }
       style={({ isActive }) =>
-        isActive ? { background: 'rgba(8,145,178,0.18)' } : {}
+        isActive ? { background: 'rgba(8,145,178,0.22)' } : {}
       }
     >
-      {({ isActive }) => (
-        <>
-          <span
-            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
-              isActive ? 'bg-[#0891B2]' : 'bg-[#1E3A4A]'
-            }`}
-          />
-          <Icon size={14} className="flex-shrink-0" />
-          {label}
-        </>
-      )}
+      <Icon size={14} />
+      {label}
     </NavLink>
   )
 }
@@ -59,9 +51,11 @@ export default function AdminSidebar() {
     navigate('/login')
   }
 
+  const initial = profile?.full_name?.charAt(0).toUpperCase() ?? 'A'
+
   return (
     <aside
-      className="fixed top-0 left-0 h-screen w-[220px] flex flex-col z-40 overflow-y-auto"
+      className="fixed top-0 left-0 h-screen w-[240px] flex flex-col z-40 overflow-y-auto"
       style={{ background: '#0C1A22', borderRight: '1px solid rgba(255,255,255,0.04)' }}
     >
       {/* Logo */}
@@ -99,13 +93,18 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div
-        className="px-4 py-4"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
-      >
-        <p className="text-[#2A4A5A] text-[11px] font-mono truncate mb-3" title={profile?.full_name ?? ''}>
-          {profile?.full_name ?? 'Admin'}
-        </p>
+      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="flex items-center gap-2.5 mb-3">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: '#0E3D52' }}
+          >
+            {initial}
+          </div>
+          <p className="text-[#5A8A9A] text-[11px] font-mono truncate" title={profile?.full_name ?? ''}>
+            {profile?.full_name ?? 'Admin'}
+          </p>
+        </div>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-2 text-[#3A5A6A] hover:text-[#EF4444] text-[12px] font-medium transition-colors cursor-pointer"

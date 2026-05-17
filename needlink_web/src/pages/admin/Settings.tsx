@@ -32,11 +32,12 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-7">
+    <div>
+      <div className="sticky top-0 z-10 bg-white px-8 py-5" style={{ borderBottom: '1px solid #E2E8F0' }}>
         <h1 className="font-heading font-bold text-[#164E63] text-2xl">Settings</h1>
-        <p className="text-[#64748B] text-sm mt-1">Admin account settings.</p>
+        <p className="text-[#94A3B8] text-sm mt-0.5">Admin account configuration.</p>
       </div>
+      <div className="p-8 max-w-2xl">
 
       {/* Profile info */}
       <div className="bg-white rounded-2xl p-6 border border-[#E8EDF2] mb-6" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
@@ -46,7 +47,7 @@ export default function Settings() {
         <div className="flex items-center gap-4">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #0891B2, #0E7490)' }}
+            style={{ background: '#0E7490' }}
           >
             {profile?.full_name?.charAt(0).toUpperCase() ?? 'A'}
           </div>
@@ -58,7 +59,7 @@ export default function Settings() {
       </div>
 
       {/* Password change */}
-      <div className="bg-white rounded-2xl p-6 border border-[#E8EDF2]" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
+      <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0]" style={{ boxShadow: '0 1px 8px rgba(15,23,42,0.04)' }}>
         <h2 className="font-heading font-bold text-[#164E63] text-[13px] uppercase tracking-wide mb-5">
           Change Password
         </h2>
@@ -108,8 +109,7 @@ export default function Settings() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl font-bold text-white text-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-55 cursor-pointer mt-2"
-            style={{ background: 'linear-gradient(135deg, #0891B2, #0E7490)' }}
+            className="px-6 py-2.5 rounded-xl font-bold text-white text-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-55 cursor-pointer mt-2 bg-[#0891B2] hover:bg-[#0E7490]"
           >
             {loading ? 'Updating…' : 'Update Password'}
           </button>
@@ -133,6 +133,7 @@ export default function Settings() {
             </div>
           ))}
         </dl>
+      </div>
       </div>
     </div>
   )

@@ -78,6 +78,36 @@ export type Database = {
           },
         ]
       }
+      notices: {
+        Row: {
+          id: string
+          title: string
+          body: string
+          audience: 'all' | 'donors' | 'ngos'
+          pinned: boolean
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          body: string
+          audience?: 'all' | 'donors' | 'ngos'
+          pinned?: boolean
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          body?: string
+          audience?: 'all' | 'donors' | 'ngos'
+          pinned?: boolean
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       donation_needs: {
         Row: {
           category: Database["public"]["Enums"]["item_category"]

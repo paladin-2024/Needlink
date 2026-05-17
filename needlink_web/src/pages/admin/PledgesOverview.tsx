@@ -66,6 +66,8 @@ export default function PledgesOverview() {
     }
   }
 
+  const countBy = (s: PledgeStatus) => pledges.filter(p => p.status === s).length
+
   const filtered = pledges.filter(p => {
     const matchStatus = status === 'all' || p.status === status
     const matchSearch =
@@ -84,72 +86,104 @@ export default function PledgesOverview() {
   if (loadError) return <PageError message={loadError} onRetry={load} />
 
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="mb-7">
+    <div>
+
+      {/* Sticky page header */}
+      <div className="sticky top-0 z-10 bg-white px-8 py-5" style={{ borderBottom: '1px solid #E2E8F0' }}>
         <h1 className="font-heading font-bold text-[#164E63] text-2xl">Pledges Overview</h1>
-        <p className="text-[#64748B] text-sm mt-1">System-wide pledge activity across all donors and NGOs.</p>
-      </div>
+        <p className="text-[#94A3B8] text-sm mt-0.5">System-wide pledge activity across all donors and NGOs.</p>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4 mb-7">
-        {(['pending', 'confirmed', 'rejected'] as PledgeStatus[]).map(s => (
-          <div key={s} className="bg-white rounded-2xl p-5 border border-[#E8EDF2]" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
-            <p className="text-[#64748B] text-xs font-semibold uppercase tracking-wide mb-1 capitalize">{s}</p>
-            <p className="font-heading font-bold text-3xl text-[#164E63]">{pledges.filter(p => p.status === s).length}</p>
+        <div className="flex items-end gap-10 mt-5 pt-4" style={{ borderTop: '1px solid #F3F5F8' }}>
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#164E63]">{pledges.length.toLocaleString()}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Total pledges</div>
           </div>
-        ))}
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#D97706]">{countBy('pending').toLocaleString()}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Pending</div>
+          </div>
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#16A34A]">{countBy('confirmed').toLocaleString()}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Confirmed</div>
+          </div>
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#EF4444]">{countBy('rejected').toLocaleString()}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Rejected</div>
+          </div>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pledges…" className="pl-9 pr-4 py-2.5 border border-[#E8EDF2] rounded-xl text-sm text-[#164E63] bg-white focus:outline-none focus:border-[#0891B2] transition-colors w-56" />
-        </div>
-        <div className="flex gap-1 bg-white border border-[#E8EDF2] rounded-xl p-1">
-          {(['all', 'pending', 'confirmed', 'rejected'] as const).map(s => (
-            <button key={s} onClick={() => setStatus(s)} className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${status === s ? 'bg-[#0891B2] text-white' : 'text-[#64748B] hover:text-[#164E63]'}`}>{s}</button>
-          ))}
-        </div>
-      </div>
+      {/* Body */}
+      <div className="p-8">
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#E8EDF2] overflow-hidden" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#F8FAFC] border-b border-[#E8EDF2]">
-              {['Donor', 'Item', 'NGO', 'Qty', 'Delivery', 'Pledged', 'Status'].map(h => (
-                <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No pledges found.</td></tr>
-            )}
-            {filtered.map(pledge => {
-              const s = STATUS_STYLES[pledge.status]
-              return (
-                <tr key={pledge.id} className="border-t border-[#E8EDF2] hover:bg-[#F8FAFC] transition-colors">
-                  <td className="px-5 py-4 font-semibold text-[#164E63]">{pledge.profiles?.full_name ?? '—'}</td>
-                  <td className="px-5 py-4 text-[#64748B]">{pledge.donation_needs?.item_name ?? '—'}</td>
-                  <td className="px-5 py-4 text-[#64748B]">{pledge.donation_needs?.ngos?.name ?? '—'}</td>
-                  <td className="px-5 py-4 font-mono font-bold text-[#164E63]">{pledge.quantity}</td>
-                  <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(pledge.delivery_date), 'dd MMM yyyy')}</td>
-                  <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(pledge.created_at), 'dd MMM yyyy')}</td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${s.bg} ${s.text}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                      {pledge.status}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        {/* Controls */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search pledges…"
+              className="pl-9 pr-4 py-2.5 border border-[#E2E8F0] rounded-xl text-sm text-[#164E63] bg-white focus:outline-none focus:border-[#0891B2] transition-colors w-56"
+            />
+          </div>
+          <div className="flex gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1">
+            {(['all', 'pending', 'confirmed', 'rejected'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setStatus(s)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                  status === s ? 'bg-[#0891B2] text-white' : 'text-[#64748B] hover:text-[#164E63]'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden" style={{ boxShadow: '0 1px 8px rgba(15,23,42,0.04)' }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: '#F8FAFB', borderBottom: '1px solid #F1F5F9' }}>
+                {['Donor', 'Item', 'NGO', 'Qty', 'Delivery', 'Pledged', 'Status'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No pledges found.</td></tr>
+              )}
+              {filtered.map(pledge => {
+                const s = STATUS_STYLES[pledge.status]
+                return (
+                  <tr key={pledge.id} className="hover:bg-[#F8FAFB] transition-colors" style={{ borderTop: '1px solid #F1F5F9' }}>
+                    <td className="px-5 py-4 font-semibold text-[#164E63]">{pledge.profiles?.full_name ?? '—'}</td>
+                    <td className="px-5 py-4 text-[#64748B]">{pledge.donation_needs?.item_name ?? '—'}</td>
+                    <td className="px-5 py-4 text-[#64748B]">{pledge.donation_needs?.ngos?.name ?? '—'}</td>
+                    <td className="px-5 py-4 font-mono font-bold text-[#164E63]">{pledge.quantity}</td>
+                    <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(pledge.delivery_date), 'dd MMM yyyy')}</td>
+                    <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(pledge.created_at), 'dd MMM yyyy')}</td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${s.bg} ${s.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                        {pledge.status}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-[#94A3B8] text-xs mt-4 text-center font-mono">
+          {filtered.length} of {pledges.length} pledges (latest 200)
+        </p>
+
       </div>
-      <p className="text-[#94A3B8] text-xs mt-4 text-center">Showing {filtered.length} of {pledges.length} pledges (latest 200)</p>
     </div>
   )
 }

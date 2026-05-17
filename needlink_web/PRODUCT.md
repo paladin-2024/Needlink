@@ -25,7 +25,7 @@ Staff at registered non-profits managing real logistics. They post specific need
 - Accent: #EA580C (action orange — urgency, energy, calls to action)
 - Background: #ECFEFF (light cyan — calm, clean, approachable)
 - Foreground: #164E63 (deep teal — authority, depth)
-- Typography: Fira Code (headings, data, monospaced labels) + Fira Sans (body, UI text)
+- Typography: Sora (headings) + Plus Jakarta Sans (body, UI text) + JetBrains Mono (data, labels)
 
 **Anti-references:**
 - Generic charity blue-and-white like GoFundMe

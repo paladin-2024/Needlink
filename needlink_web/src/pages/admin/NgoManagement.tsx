@@ -103,100 +103,163 @@ export default function NgoManagement() {
 
   if (loadError) return <PageError message={loadError} onRetry={load} />
 
+  const topNgos = [...ngos].sort((a, b) => (b.needs_count ?? 0) - (a.needs_count ?? 0)).slice(0, 5)
+  const topMax  = topNgos[0]?.needs_count ?? 1
+
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="mb-7">
+    <div>
+
+      {/* Sticky page header */}
+      <div className="sticky top-0 z-10 bg-white px-8 py-5" style={{ borderBottom: '1px solid #E2E8F0' }}>
         <h1 className="font-heading font-bold text-[#164E63] text-2xl">NGO Management</h1>
-        <p className="text-[#64748B] text-sm mt-1">Verify and manage registered organisations.</p>
-      </div>
+        <p className="text-[#94A3B8] text-sm mt-0.5">Verify and manage registered organisations.</p>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4 mb-7">
-        {[
-          { label: 'Total NGOs', value: total,    color: '#0891B2' },
-          { label: 'Verified',   value: verified, color: '#16A34A' },
-          { label: 'Pending',    value: pending,  color: pending > 0 ? '#EF4444' : '#64748B' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-2xl p-5 border border-[#E8EDF2]" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
-            <p className="text-[#64748B] text-xs font-semibold uppercase tracking-wide mb-1">{label}</p>
-            <p className="font-heading font-bold text-3xl" style={{ color }}>{value}</p>
+        <div className="flex items-end gap-10 mt-5 pt-4" style={{ borderTop: '1px solid #F3F5F8' }}>
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#0891B2]">{total}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Total organisations</div>
           </div>
-        ))}
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative flex-1 max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search NGOs…" className="w-full pl-9 pr-4 py-2.5 border border-[#E8EDF2] rounded-xl text-sm text-[#164E63] bg-white focus:outline-none focus:border-[#0891B2] transition-colors" />
-        </div>
-        <div className="flex gap-1 bg-white border border-[#E8EDF2] rounded-xl p-1">
-          {(['all', 'verified', 'pending'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${filter === f ? 'bg-[#0891B2] text-white' : 'text-[#64748B] hover:text-[#164E63]'}`}>{f}</button>
-          ))}
+          <div>
+            <div className="font-mono font-bold text-[1.4rem] leading-none text-[#16A34A]">{verified}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Verified</div>
+          </div>
+          <div>
+            <div className={`font-mono font-bold text-[1.4rem] leading-none ${pending > 0 ? 'text-[#EF4444]' : 'text-[#94A3B8]'}`}>{pending}</div>
+            <div className="text-[#94A3B8] text-xs mt-1.5">Pending review</div>
+          </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#E8EDF2] overflow-hidden" style={{ boxShadow: '0 1px 6px rgba(8,145,178,0.06)' }}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#F8FAFC] border-b border-[#E8EDF2]">
-              {['Organisation', 'Location', 'Reg. Number', 'Needs', 'Joined', 'Status', 'Actions'].map(h => (
-                <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No NGOs found.</td></tr>
-            )}
-            {filtered.map(ngo => (
-              <tr key={ngo.id} className="border-t border-[#E8EDF2] hover:bg-[#F8FAFC] transition-colors">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#E0F7FA' }}>
-                      <Building2 size={13} className="text-[#0891B2]" />
+      {/* Body */}
+      <div className="p-8">
+
+        {/* Most active NGOs */}
+        {topNgos.some(n => (n.needs_count ?? 0) > 0) && (
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 mb-6" style={{ boxShadow: '0 1px 8px rgba(15,23,42,0.04)' }}>
+            <h2 className="font-heading font-bold text-[#164E63] text-[13px] uppercase tracking-wide mb-5">Most Active Organisations</h2>
+            <div className="space-y-3.5">
+              {topNgos.filter(n => (n.needs_count ?? 0) > 0).map((ngo, i) => {
+                const pct = Math.round(((ngo.needs_count ?? 0) / topMax) * 100)
+                return (
+                  <div key={ngo.id} className="flex items-center gap-4">
+                    <span className="w-5 text-xs font-mono text-[#94A3B8] text-right shrink-0">{i + 1}</span>
+                    <div className="w-40 shrink-0">
+                      <p className="text-sm font-semibold text-[#164E63] truncate">{ngo.name}</p>
+                      <p className="text-[#94A3B8] text-[10px] font-mono">{ngo.location}</p>
                     </div>
-                    <span className="font-semibold text-[#164E63]">{ngo.name}</span>
-                    {ngo.verified && <BadgeCheck size={14} className="text-[#0891B2] shrink-0" />}
+                    <div className="flex-1 h-2 rounded-full bg-[#F3F5F8] overflow-hidden">
+                      <div className="h-full rounded-full bg-[#0891B2] transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-mono font-bold text-[#164E63] text-sm w-8 text-right">{ngo.needs_count}</span>
+                      <span className="text-[#94A3B8] text-xs">needs</span>
+                      {ngo.verified ? (
+                        <BadgeCheck size={13} className="text-[#0891B2]" />
+                      ) : (
+                        <span className="text-[10px] font-semibold text-[#D97706] bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">pending</span>
+                      )}
+                    </div>
                   </div>
-                </td>
-                <td className="px-5 py-4 text-[#64748B]">{ngo.location}</td>
-                <td className="px-5 py-4 font-mono text-[#64748B] text-xs">{ngo.registration_number ?? '—'}</td>
-                <td className="px-5 py-4 font-mono text-[#164E63] text-sm font-semibold">{ngo.needs_count}</td>
-                <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(ngo.created_at), 'dd MMM yyyy')}</td>
-                <td className="px-5 py-4">
-                  {ngo.verified ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Verified
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Pending
-                    </span>
-                  )}
-                </td>
-                <td className="px-5 py-4">
-                  {!ngo.verified ? (
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => verify(ngo.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0891B2] text-white text-xs font-semibold hover:bg-[#0E7490] transition-colors cursor-pointer">
-                        <CheckCircle size={11} /> Verify
-                      </button>
-                      <button onClick={() => reject(ngo.id, ngo.name)} className="px-3 py-1.5 rounded-lg border border-[#EF4444] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer">
-                        Reject
-                      </button>
-                    </div>
-                  ) : (
-                    <button className="p-1.5 text-[#CBD5E1] hover:text-[#64748B] transition-colors cursor-pointer rounded-lg hover:bg-[#F1F5F9]">
-                      <MoreHorizontal size={15} />
-                    </button>
-                  )}
-                </td>
-              </tr>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Controls */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search NGOs…"
+              className="w-full pl-9 pr-4 py-2.5 border border-[#E2E8F0] rounded-xl text-sm text-[#164E63] bg-white focus:outline-none focus:border-[#0891B2] transition-colors"
+            />
+          </div>
+          <div className="flex gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1">
+            {(['all', 'verified', 'pending'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                  filter === f ? 'bg-[#0891B2] text-white' : 'text-[#64748B] hover:text-[#164E63]'
+                }`}
+              >
+                {f}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden" style={{ boxShadow: '0 1px 8px rgba(15,23,42,0.04)' }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: '#F8FAFB', borderBottom: '1px solid #F1F5F9' }}>
+                {['Organisation', 'Location', 'Reg. Number', 'Needs', 'Joined', 'Status', 'Actions'].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No NGOs found.</td></tr>
+              )}
+              {filtered.map(ngo => (
+                <tr key={ngo.id} className="hover:bg-[#F8FAFB] transition-colors" style={{ borderTop: '1px solid #F1F5F9' }}>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#EEF9FC' }}>
+                        <Building2 size={13} className="text-[#0891B2]" />
+                      </div>
+                      <span className="font-semibold text-[#164E63]">{ngo.name}</span>
+                      {ngo.verified && <BadgeCheck size={14} className="text-[#0891B2] shrink-0" />}
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-[#64748B]">{ngo.location}</td>
+                  <td className="px-5 py-4 font-mono text-[#64748B] text-xs">{ngo.registration_number ?? '—'}</td>
+                  <td className="px-5 py-4 font-mono font-bold text-[#164E63] text-sm">{ngo.needs_count}</td>
+                  <td className="px-5 py-4 text-xs font-mono text-[#64748B]">{format(parseISO(ngo.created_at), 'dd MMM yyyy')}</td>
+                  <td className="px-5 py-4">
+                    {ngo.verified ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Verified
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Pending
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4">
+                    {!ngo.verified ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => verify(ngo.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0891B2] text-white text-xs font-semibold hover:bg-[#0E7490] transition-colors cursor-pointer"
+                        >
+                          <CheckCircle size={11} /> Verify
+                        </button>
+                        <button
+                          onClick={() => reject(ngo.id, ngo.name)}
+                          className="px-3 py-1.5 rounded-lg border border-[#EF4444] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="p-1.5 text-[#CBD5E1] hover:text-[#64748B] transition-colors cursor-pointer rounded-lg hover:bg-[#F1F5F9]">
+                        <MoreHorizontal size={15} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
   )

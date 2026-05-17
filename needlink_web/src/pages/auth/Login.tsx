@@ -110,8 +110,7 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl font-bold text-white text-sm tracking-wide mt-2 transition-all duration-150 active:scale-[0.98] disabled:opacity-55 cursor-pointer"
-            style={{ background: 'linear-gradient(135deg, #0891B2, #0E7490)' }}
+            className="w-full py-3 px-4 rounded-xl font-bold text-white text-sm tracking-wide mt-2 transition-all duration-150 active:scale-[0.98] disabled:opacity-55 cursor-pointer bg-[#0891B2] hover:bg-[#0E7490]"
           >
             {loading ? 'Signing in…' : 'Sign in to Admin Portal'}
           </button>

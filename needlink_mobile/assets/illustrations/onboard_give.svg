@@ -1,0 +1,60 @@
+<svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Background circles -->
+  <circle cx="200" cy="160" r="148" fill="#0AC8EC" fill-opacity="0.04"/>
+  <circle cx="200" cy="160" r="108" fill="#0AC8EC" fill-opacity="0.06"/>
+  <circle cx="200" cy="160" r="70" fill="#0AC8EC" fill-opacity="0.08"/>
+
+  <!-- Floating items: food box -->
+  <g transform="translate(68,68)">
+    <rect x="0" y="12" width="64" height="52" rx="8" fill="#EA580C" fill-opacity="0.18" stroke="#EA580C" stroke-width="1.5"/>
+    <rect x="0" y="0" width="64" height="16" rx="4" fill="#EA580C" fill-opacity="0.28" stroke="#EA580C" stroke-width="1.5"/>
+    <line x1="32" y1="0" x2="32" y2="16" stroke="#EA580C" stroke-width="1.5"/>
+    <!-- apple icon inside -->
+    <text x="32" y="50" font-size="22" text-anchor="middle" fill="#EA580C">🍎</text>
+    <text x="32" y="28" font-size="9" text-anchor="middle" fill="#EA580C" font-family="sans-serif" font-weight="700" letter-spacing="1">FOOD</text>
+  </g>
+
+  <!-- Clothing item -->
+  <g transform="translate(268,52)">
+    <rect x="0" y="0" width="64" height="72" rx="8" fill="#7C3AED" fill-opacity="0.18" stroke="#7C3AED" stroke-width="1.5"/>
+    <!-- shirt shape -->
+    <path d="M10 14 L20 6 L32 10 L44 6 L54 14 L46 20 L46 64 L18 64 L18 20 Z" fill="#7C3AED" fill-opacity="0.35" stroke="#7C3AED" stroke-width="1.2"/>
+    <text x="32" y="48" font-size="9" text-anchor="middle" fill="#7C3AED" font-family="sans-serif" font-weight="700" letter-spacing="1">CLOTHING</text>
+  </g>
+
+  <!-- Medicine box -->
+  <g transform="translate(72,200)">
+    <rect x="0" y="0" width="64" height="64" rx="8" fill="#16A34A" fill-opacity="0.18" stroke="#16A34A" stroke-width="1.5"/>
+    <!-- cross symbol -->
+    <rect x="24" y="12" width="16" height="40" rx="4" fill="#16A34A" fill-opacity="0.5"/>
+    <rect x="12" y="24" width="40" height="16" rx="4" fill="#16A34A" fill-opacity="0.5"/>
+    <text x="32" y="56" font-size="8" text-anchor="middle" fill="#16A34A" font-family="sans-serif" font-weight="700" letter-spacing="1">MEDICINE</text>
+  </g>
+
+  <!-- Supplies box -->
+  <g transform="translate(268,194)">
+    <rect x="0" y="0" width="64" height="64" rx="8" fill="#0891B2" fill-opacity="0.18" stroke="#0891B2" stroke-width="1.5"/>
+    <!-- box icon -->
+    <rect x="10" y="20" width="44" height="32" rx="3" fill="#0891B2" fill-opacity="0.3" stroke="#0891B2" stroke-width="1.2"/>
+    <path d="M10 28 L54 28" stroke="#0891B2" stroke-width="1.2"/>
+    <path d="M26 20 L26 36 M38 20 L38 36" stroke="#0891B2" stroke-width="1.2"/>
+    <text x="32" y="62" font-size="8" text-anchor="middle" fill="#0891B2" font-family="sans-serif" font-weight="700" letter-spacing="0.5">SUPPLIES</text>
+  </g>
+
+  <!-- Center: hands giving/receiving -->
+  <g transform="translate(148,104)">
+    <!-- Left hand giving -->
+    <path d="M12 72 C12 72 8 60 16 56 C24 52 28 60 28 60 L48 44 C52 40 58 42 58 48 L42 64 L56 52 C60 48 66 50 64 56 L48 70 L60 60 C64 56 70 60 68 66 L52 78 L60 72 C62 68 66 72 64 78 L40 96 C34 100 24 98 20 94 Z" fill="#0AC8EC" fill-opacity="0.25" stroke="#0AC8EC" stroke-width="1.6"/>
+    <!-- Right hand receiving -->
+    <path d="M92 72 C92 72 96 60 88 56 C80 52 76 60 76 60 L56 44 C52 40 46 42 46 48 L62 64 L48 52 C44 48 38 50 40 56 L56 70 L44 60 C40 56 34 60 36 66 L52 78 L44 72 C42 68 38 72 40 78 L64 96 C70 100 80 98 84 94 Z" fill="#0AC8EC" fill-opacity="0.15" stroke="#0AC8EC" stroke-width="1.6"/>
+    <!-- Heart above hands -->
+    <path d="M52 20 C52 16 48 12 44 14 C40 16 40 20 44 26 L52 34 L60 26 C64 20 64 16 60 14 C56 12 52 16 52 20Z" fill="#0AC8EC" fill-opacity="0.6"/>
+    <!-- Sparkles -->
+    <circle cx="30" cy="10" r="3" fill="#0AC8EC" fill-opacity="0.7"/>
+    <circle cx="74" cy="8" r="2" fill="#0AC8EC" fill-opacity="0.5"/>
+    <circle cx="18" cy="32" r="2" fill="#0AC8EC" fill-opacity="0.4"/>
+    <circle cx="86" cy="28" r="3" fill="#0AC8EC" fill-opacity="0.4"/>
+    <path d="M26 3 L27 7 L31 8 L27 9 L26 13 L25 9 L21 8 L25 7 Z" fill="#0AC8EC" fill-opacity="0.6"/>
+    <path d="M79 2 L80 5 L83 6 L80 7 L79 10 L78 7 L75 6 L78 5 Z" fill="#0AC8EC" fill-opacity="0.5"/>
+  </g>
+</svg>

@@ -10,6 +10,7 @@ import NeedsOverview from './pages/admin/NeedsOverview'
 import PledgesOverview from './pages/admin/PledgesOverview'
 import Reports from './pages/admin/Reports'
 import Settings from './pages/admin/Settings'
+import Notices from './pages/admin/Notices'
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useAuth()
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/admin/needs"     element={<AdminRoute><NeedsOverview /></AdminRoute>} />
           <Route path="/admin/pledges"   element={<AdminRoute><PledgesOverview /></AdminRoute>} />
           <Route path="/admin/reports"   element={<AdminRoute><Reports /></AdminRoute>} />
+          <Route path="/admin/notices"   element={<AdminRoute><Notices /></AdminRoute>} />
           <Route path="/admin/settings"  element={<AdminRoute><Settings /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

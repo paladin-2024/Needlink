@@ -1,0 +1,79 @@
+<svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Background glow -->
+  <circle cx="200" cy="160" r="130" fill="#7C3AED" fill-opacity="0.05"/>
+
+  <!-- Connection lines (network) -->
+  <line x1="200" y1="160" x2="90" y2="90" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="5,4" stroke-opacity="0.5"/>
+  <line x1="200" y1="160" x2="310" y2="90" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="5,4" stroke-opacity="0.5"/>
+  <line x1="200" y1="160" x2="80" y2="220" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="5,4" stroke-opacity="0.5"/>
+  <line x1="200" y1="160" x2="320" y2="220" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="5,4" stroke-opacity="0.5"/>
+  <line x1="200" y1="160" x2="200" y2="58" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="5,4" stroke-opacity="0.5"/>
+
+  <!-- Secondary connections -->
+  <line x1="90" y1="90" x2="310" y2="90" stroke="#7C3AED" stroke-width="0.8" stroke-dasharray="3,5" stroke-opacity="0.2"/>
+  <line x1="80" y1="220" x2="320" y2="220" stroke="#7C3AED" stroke-width="0.8" stroke-dasharray="3,5" stroke-opacity="0.2"/>
+  <line x1="90" y1="90" x2="80" y2="220" stroke="#7C3AED" stroke-width="0.8" stroke-dasharray="3,5" stroke-opacity="0.2"/>
+  <line x1="310" y1="90" x2="320" y2="220" stroke="#7C3AED" stroke-width="0.8" stroke-dasharray="3,5" stroke-opacity="0.2"/>
+
+  <!-- Pulse rings on center node -->
+  <circle cx="200" cy="160" r="52" stroke="#7C3AED" stroke-width="1" stroke-opacity="0.15"/>
+  <circle cx="200" cy="160" r="38" stroke="#7C3AED" stroke-width="1.5" stroke-opacity="0.2"/>
+
+  <!-- Center node: NeedLink -->
+  <circle cx="200" cy="160" r="28" fill="#7C3AED" fill-opacity="0.2" stroke="#7C3AED" stroke-width="2"/>
+  <!-- NL lettermark on center -->
+  <polyline points="188,150 188,172 196,150 196,172 212,172" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Donor node -->
+  <g transform="translate(62,62)">
+    <circle cx="28" cy="28" r="26" fill="#0891B2" fill-opacity="0.15" stroke="#0891B2" stroke-width="1.8"/>
+    <!-- person icon -->
+    <circle cx="28" cy="20" r="7" fill="#0891B2" fill-opacity="0.5"/>
+    <path d="M14 42 C14 34 42 34 42 42" fill="#0891B2" fill-opacity="0.5"/>
+    <text x="28" y="54" font-size="8" text-anchor="middle" fill="#0891B2" font-family="sans-serif" font-weight="700">DONOR</text>
+  </g>
+
+  <!-- NGO node top -->
+  <g transform="translate(172,28)">
+    <circle cx="28" cy="28" r="26" fill="#16A34A" fill-opacity="0.15" stroke="#16A34A" stroke-width="1.8"/>
+    <!-- building icon -->
+    <rect x="14" y="18" width="28" height="20" rx="2" fill="#16A34A" fill-opacity="0.3" stroke="#16A34A" stroke-width="1.2"/>
+    <rect x="22" y="28" width="12" height="10" rx="1" fill="#16A34A" fill-opacity="0.4"/>
+    <path d="M18 18 L28 10 L38 18" fill="#16A34A" fill-opacity="0.4"/>
+    <text x="28" y="54" font-size="8" text-anchor="middle" fill="#16A34A" font-family="sans-serif" font-weight="700">NGO</text>
+  </g>
+
+  <!-- Community node -->
+  <g transform="translate(280,62)">
+    <circle cx="28" cy="28" r="26" fill="#EA580C" fill-opacity="0.15" stroke="#EA580C" stroke-width="1.8"/>
+    <!-- people group -->
+    <circle cx="22" cy="20" r="5" fill="#EA580C" fill-opacity="0.5"/>
+    <circle cx="34" cy="20" r="5" fill="#EA580C" fill-opacity="0.5"/>
+    <path d="M10 40 C10 33 38 33 38 40" fill="#EA580C" fill-opacity="0.4"/>
+    <text x="28" y="54" font-size="7" text-anchor="middle" fill="#EA580C" font-family="sans-serif" font-weight="700">COMMUNITY</text>
+  </g>
+
+  <!-- Volunteer node -->
+  <g transform="translate(50,190)">
+    <circle cx="28" cy="28" r="26" fill="#0AC8EC" fill-opacity="0.15" stroke="#0AC8EC" stroke-width="1.8"/>
+    <!-- heart/volunteer -->
+    <path d="M28 38 C28 38 14 30 14 22 C14 17 18 14 22 16 C25 17 28 20 28 20 C28 20 31 17 34 16 C38 14 42 17 42 22 C42 30 28 38 28 38Z" fill="#0AC8EC" fill-opacity="0.5"/>
+    <text x="28" y="54" font-size="7" text-anchor="middle" fill="#0AC8EC" font-family="sans-serif" font-weight="700">VOLUNTEER</text>
+  </g>
+
+  <!-- Recipient node -->
+  <g transform="translate(290,190)">
+    <circle cx="28" cy="28" r="26" fill="#D97706" fill-opacity="0.15" stroke="#D97706" stroke-width="1.8"/>
+    <!-- family icon -->
+    <circle cx="24" cy="18" r="6" fill="#D97706" fill-opacity="0.5"/>
+    <circle cx="36" cy="20" r="4" fill="#D97706" fill-opacity="0.4"/>
+    <path d="M12 40 C12 32 40 32 40 40" fill="#D97706" fill-opacity="0.4"/>
+    <text x="28" y="54" font-size="7" text-anchor="middle" fill="#D97706" font-family="sans-serif" font-weight="700">RECIPIENT</text>
+  </g>
+
+  <!-- Floating data packets on lines -->
+  <circle cx="145" cy="125" r="4" fill="#7C3AED" fill-opacity="0.7"/>
+  <circle cx="255" cy="125" r="4" fill="#7C3AED" fill-opacity="0.5"/>
+  <circle cx="140" cy="195" r="3" fill="#7C3AED" fill-opacity="0.6"/>
+  <circle cx="260" cy="195" r="3" fill="#7C3AED" fill-opacity="0.4"/>
+</svg>

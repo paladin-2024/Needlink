@@ -278,3 +278,30 @@ Tailwind CSS 4, existing token names adapted:
 - NGO registration flow on mobile (exists, unchanged)
 - Database schema changes
 - Supabase RLS policy changes
+
+
+
+
+● The Google OAuth flow for mobile goes like this:
+App → Google → Supabase callback → App deep link
+
+Three things need to be correct:
+
+  ---
+1. Google Cloud Console → Web OAuth client → Authorized redirect URIs
+
+Must have exactly (type it, don't paste):
+https://bxkztuzxnjqrgpyisqmn.supabase.co/auth/v1/callback
+
+  ---
+- Redirect URLs: add mean
+
+  ---
+3. Supabase Dashboard → Authentication → Providers → Google
+
+Make sure you used the Web client credentials (not the Android client):
+- Client ID → from the Web OAuth client
+- Client Secret → from the Web OAuth client
+
+  ---
+Do all three, save each one, then try Google Sign In again. Which step are you on? 
