@@ -44,7 +44,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tracking Details'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/donor/tracking')),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/donor/pledges')),
         actions: [IconButton(icon: const Icon(Icons.search_rounded), onPressed: () {})],
       ),
       body: SingleChildScrollView(

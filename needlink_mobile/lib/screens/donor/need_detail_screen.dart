@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models.dart';
 import '../../theme.dart';
@@ -18,7 +19,6 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
   bool _pledging = false;
   bool _success = false;
   String? _error;
-
   int _quantity = 1;
   DateTime? _deliveryDate;
   final _notesCtrl = TextEditingController();
@@ -40,12 +40,9 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
       await Supabase.instance.client.from('pledges').insert({
         'need_id': _need!.id, 'donor_id': user.id, 'quantity': _quantity,
         'delivery_date': DateFormat('yyyy-MM-dd').format(_deliveryDate!),
-        'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text : null,
+        'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text.trim() : null,
       });
-      final newPledged = _need!.quantityPledged + _quantity;
-      final newStatus = newPledged >= _need!.quantityNeeded ? 'matched' : _need!.status;
-      await Supabase.instance.client.from('donation_needs')
-          .update({'quantity_pledged': newPledged, 'status': newStatus}).eq('id', _need!.id);
+      // quantity_pledged and status are updated atomically by a DB trigger — not here.
       setState(() { _success = true; _pledging = false; });
     } catch (e) {
       setState(() { _error = e.toString(); _pledging = false; });
@@ -55,6 +52,20 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
   @override
   void dispose() { _notesCtrl.dispose(); super.dispose(); }
 
+  static const _catColors = {
+    'food': Color(0xFFEA580C), 'clothing': Color(0xFF7C3AED),
+    'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
+  };
+  static const _catIcons = {
+    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
+    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+  };
+
+  static const _shadow = [
+    BoxShadow(color: Color(0x140891B2), blurRadius: 10, offset: Offset(0, 2)),
+    BoxShadow(color: Color(0x08000000), blurRadius: 3, offset: Offset(0, 1)),
+  ];
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)));
@@ -63,183 +74,281 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
     final need = _need!;
     final remaining = need.remaining;
     final isClosed = need.status == 'matched' || need.status == 'closed' || remaining <= 0;
+    final catColor = _catColors[need.category] ?? kPrimary;
+    final catIcon = _catIcons[need.category] ?? Icons.inventory_2_rounded;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Need Details'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/donor')),
-        actions: [IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {})],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-
-          // Category / priority chips
-          Row(children: [
-            _CategoryChip(need.category),
-            const SizedBox(width: 8),
-            if (need.isUrgent) _PriorityChip('URGENT', kUrgent),
-            if (!need.isUrgent) _PriorityChip('OPEN', kPrimary),
-          ]),
-          const SizedBox(height: 12),
-
-          // Item name
-          Text(need.itemName,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kForeground, height: 1.2)),
-          const SizedBox(height: 8),
-
-          // NGO info
-          if (need.ngo != null) ...[
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
-              ),
-              child: Row(children: [
-                Container(
-                  width: 44, height: 44,
-                  decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.corporate_fare_rounded, size: 22, color: kPrimary),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(need.ngo!.name,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: kForeground)),
+      body: Column(children: [
+        // ── Gradient hero ────────────────────────────────────────────────────
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment(-0.4, -1), end: Alignment(1, 0.6),
+              colors: [Color(0xFF0C4A6E), Color(0xFF0891B2)],
+            ),
+          ),
+          child: Stack(children: [
+            Positioned.fill(child: CustomPaint(painter: _DotPainter())),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    const Icon(Icons.location_on_outlined, size: 13, color: kMutedFg),
-                    const SizedBox(width: 3),
-                    Text(need.ngo!.location, style: const TextStyle(fontSize: 12, color: kMutedFg)),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+                      onPressed: () => context.go('/donor'),
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+                      onPressed: () {},
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
+                    ),
                   ]),
-                ])),
-                if (need.ngo!.verified)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: kMatched.withAlpha(20), borderRadius: BorderRadius.circular(20)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                      Icon(Icons.verified_rounded, size: 12, color: kMatched),
-                      SizedBox(width: 4),
-                      Text('Verified', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kMatched)),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: catColor.withAlpha(55),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: catColor.withAlpha(90)),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(catIcon, size: 11, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            need.category[0].toUpperCase() + need.category.substring(1),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                        ]),
+                      ),
+                      const SizedBox(width: 8),
+                      if (need.isUrgent)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(color: kUrgent, borderRadius: BorderRadius.circular(20)),
+                          child: const Text('URGENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(25), borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text('OPEN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                        ),
                     ]),
                   ),
-              ]),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(need.itemName, style: GoogleFonts.sora(
+                      color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, height: 1.2,
+                    )),
+                  ),
+                  if (need.ngo != null) ...[
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(need.ngo!.name, style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white.withValues(alpha: 0.65), fontSize: 12,
+                      )),
+                    ),
+                  ],
+                ]),
+              ),
             ),
-            const SizedBox(height: 14),
-          ],
+          ]),
+        ),
 
-          // Progress block
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
-            ),
-            child: Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${need.quantityPledged}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: kPrimary)),
-                  const Text('Pledged', style: TextStyle(fontSize: 12, color: kMutedFg)),
-                ]),
-                Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  Text('${(need.progress * 100).round()}%', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: kForeground)),
-                  const Text('Progress', style: TextStyle(fontSize: 12, color: kMutedFg)),
-                ]),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('${need.quantityNeeded}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: kForeground)),
-                  const Text('Goal', style: TextStyle(fontSize: 12, color: kMutedFg)),
-                ]),
-              ]),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: need.progress,
-                  backgroundColor: kMuted,
-                  valueColor: AlwaysStoppedAnimation(need.progress >= 1 ? kMatched : kPrimary),
-                  minHeight: 10,
+        // ── Scrollable content ────────────────────────────────────────────────
+        Expanded(child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+
+            // NGO card
+            if (need.ngo != null) ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: kSurface, borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: kBorder), boxShadow: _shadow,
                 ),
+                child: Row(children: [
+                  Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0C4A6E), Color(0xFF0891B2)],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.corporate_fare_rounded, size: 22, color: Colors.white),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(need.ngo!.name, style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700, fontSize: 14, color: kForeground,
+                    )),
+                    Row(children: [
+                      const Icon(Icons.location_on_outlined, size: 13, color: kMutedFg),
+                      const SizedBox(width: 3),
+                      Text(need.ngo!.location, style: const TextStyle(fontSize: 12, color: kMutedFg)),
+                    ]),
+                  ])),
+                  if (need.ngo!.verified)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: kMatched.withAlpha(20), borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                        Icon(Icons.verified_rounded, size: 12, color: kMatched),
+                        SizedBox(width: 4),
+                        Text('Verified', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kMatched)),
+                      ]),
+                    ),
+                ]),
               ),
-            ]),
-          ),
-          const SizedBox(height: 14),
-
-          // Description
-          if (need.description != null && need.description!.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('About this need', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kForeground)),
-                const SizedBox(height: 8),
-                Text(need.description!, style: const TextStyle(fontSize: 13, color: kForeground, height: 1.6)),
-              ]),
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          // Logistics
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Logistics', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kForeground)),
               const SizedBox(height: 12),
-              _InfoRow(Icons.inventory_2_outlined, 'Still needed', '$remaining units'),
-              const SizedBox(height: 8),
-              _InfoRow(Icons.calendar_today_outlined, 'Deadline', need.deadline),
-              const SizedBox(height: 8),
-              _InfoRow(Icons.category_outlined, 'Category', need.category[0].toUpperCase() + need.category.substring(1)),
-            ]),
-          ),
-          const SizedBox(height: 20),
+            ],
 
-          // Success banner
-          if (_success)
+            // Progress block
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFBBF7D0)),
+                color: const Color(0xFFF0FDFF), borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: kBorder), boxShadow: _shadow,
               ),
-              child: Row(children: [
-                const Icon(Icons.check_circle_rounded, color: kMatched, size: 26),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Pledge submitted!', style: TextStyle(fontWeight: FontWeight.w700, color: kMatched)),
-                  const SizedBox(height: 2),
-                  const Text('The NGO will review your pledge.', style: TextStyle(fontSize: 13, color: kMutedFg)),
-                  const SizedBox(height: 4),
-                  GestureDetector(
-                    onTap: () => context.go('/donor/pledges'),
-                    child: const Text('View my pledges →', style: TextStyle(fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600)),
+              child: Column(children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('${need.quantityPledged}', style: GoogleFonts.sora(
+                      fontSize: 28, fontWeight: FontWeight.w900, color: kPrimary,
+                    )),
+                    Text('Pledged', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: kMutedFg)),
+                  ]),
+                  Column(children: [
+                    Text('${(need.progress * 100).round()}%', style: GoogleFonts.sora(
+                      fontSize: 28, fontWeight: FontWeight.w900, color: kForeground,
+                    )),
+                    Text('Progress', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: kMutedFg)),
+                  ]),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('${need.quantityNeeded}', style: GoogleFonts.sora(
+                      fontSize: 28, fontWeight: FontWeight.w900, color: kForeground,
+                    )),
+                    Text('Goal', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: kMutedFg)),
+                  ]),
+                ]),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: need.progress,
+                    backgroundColor: kMuted,
+                    valueColor: AlwaysStoppedAnimation(need.progress >= 1 ? kMatched : kPrimary),
+                    minHeight: 8,
                   ),
-                ])),
+                ),
               ]),
             ),
+            const SizedBox(height: 16),
 
-          // Error
-          if (_error != null)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFECACA)),
+            // Description
+            if (need.description != null && need.description!.isNotEmpty) ...[
+              Text('ABOUT THIS NEED', style: GoogleFonts.sora(
+                fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+              )),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: kSurface, borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: kBorder), boxShadow: _shadow,
+                ),
+                child: Text(need.description!, style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13, color: kForeground, height: 1.65,
+                )),
               ),
-              child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 13)),
-            ),
-        ]),
-      ),
+              const SizedBox(height: 16),
+            ],
 
-      // Persistent FAB / pledge form at bottom
+            // Logistics
+            Text('LOGISTICS', style: GoogleFonts.sora(
+              fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+            )),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: kSurface, borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: kBorder), boxShadow: _shadow,
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _InfoRow(Icons.inventory_2_outlined, 'Still needed', '$remaining units'),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, color: kBorder)),
+                _InfoRow(Icons.calendar_today_outlined, 'Deadline', need.deadline),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, color: kBorder)),
+                _InfoRow(
+                  Icons.category_outlined, 'Category',
+                  need.category[0].toUpperCase() + need.category.substring(1),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 20),
+
+            // Success banner
+            if (_success)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFBBF7D0)),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.check_circle_rounded, color: kMatched, size: 26),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Pledge submitted!', style: GoogleFonts.sora(fontWeight: FontWeight.w700, color: kMatched)),
+                    const SizedBox(height: 2),
+                    Text('The NGO will review your pledge.', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () => context.go('/donor/pledges'),
+                      child: Text('View my pledges →', style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600,
+                      )),
+                    ),
+                  ])),
+                ]),
+              ),
+
+            if (_error != null)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 13)),
+              ),
+
+            const SizedBox(height: 100),
+          ]),
+        )),
+      ]),
       bottomSheet: isClosed || _success ? null : _PledgeSheet(
-        remaining: remaining,
-        quantity: _quantity,
-        deliveryDate: _deliveryDate,
-        notesCtrl: _notesCtrl,
-        pledging: _pledging,
-        need: need,
+        remaining: remaining, quantity: _quantity, deliveryDate: _deliveryDate,
+        notesCtrl: _notesCtrl, pledging: _pledging, need: need,
         onQuantityChanged: (v) => setState(() => _quantity = v),
         onDateChanged: (d) => setState(() => _deliveryDate = d),
         onSubmit: _submitPledge,
@@ -248,9 +357,10 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
   }
 }
 
+// ── Pledge bottom sheet ──────────────────────────────────────────────────────
+
 class _PledgeSheet extends StatelessWidget {
-  final int remaining;
-  final int quantity;
+  final int remaining, quantity;
   final DateTime? deliveryDate;
   final TextEditingController notesCtrl;
   final bool pledging;
@@ -258,6 +368,7 @@ class _PledgeSheet extends StatelessWidget {
   final ValueChanged<int> onQuantityChanged;
   final ValueChanged<DateTime> onDateChanged;
   final VoidCallback onSubmit;
+
   const _PledgeSheet({
     required this.remaining, required this.quantity, required this.deliveryDate,
     required this.notesCtrl, required this.pledging, required this.need,
@@ -266,7 +377,7 @@ class _PledgeSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+    padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 20),
     decoration: BoxDecoration(
       color: kSurface,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -275,32 +386,39 @@ class _PledgeSheet extends StatelessWidget {
     ),
     child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
-      const SizedBox(height: 12),
-      const Text('Make a Pledge', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: kForeground)),
+      const SizedBox(height: 14),
+      Text('Make a Pledge', style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w800, color: kForeground)),
       const SizedBox(height: 16),
 
-      // Quantity stepper
       Row(children: [
-        const Text('Quantity', style: TextStyle(fontSize: 13, color: kMutedFg)),
+        Text('Quantity', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
         const Spacer(),
-        IconButton(
-          onPressed: quantity > 1 ? () => onQuantityChanged(quantity - 1) : null,
-          icon: const Icon(Icons.remove_circle_outline, color: kPrimary),
-          padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+        GestureDetector(
+          onTap: quantity > 1 ? () => onQuantityChanged(quantity - 1) : null,
+          child: Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: quantity > 1 ? kPrimary.withAlpha(20) : kMuted,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.remove_rounded, size: 18, color: quantity > 1 ? kPrimary : kMutedFg),
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('$quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kForeground)),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Text('$quantity', style: GoogleFonts.sora(fontSize: 20, fontWeight: FontWeight.w900, color: kForeground)),
         ),
-        IconButton(
-          onPressed: quantity < remaining ? () => onQuantityChanged(quantity + 1) : null,
-          icon: const Icon(Icons.add_circle_outline, color: kPrimary),
-          padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+        GestureDetector(
+          onTap: quantity < remaining ? () => onQuantityChanged(quantity + 1) : null,
+          child: Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(8)),
+            child: const Icon(Icons.add_rounded, size: 18, color: kPrimary),
+          ),
         ),
       ]),
       const SizedBox(height: 12),
 
-      // Date picker
       GestureDetector(
         onTap: () async {
           DateTime lastDate;
@@ -308,8 +426,7 @@ class _PledgeSheet extends StatelessWidget {
           final d = await showDatePicker(
             context: context,
             initialDate: DateTime.now().add(const Duration(days: 3)),
-            firstDate: DateTime.now(),
-            lastDate: lastDate,
+            firstDate: DateTime.now(), lastDate: lastDate,
             builder: (ctx, child) => Theme(
               data: Theme.of(ctx).copyWith(colorScheme: const ColorScheme.light(primary: kPrimary)),
               child: child!,
@@ -318,93 +435,58 @@ class _PledgeSheet extends StatelessWidget {
           if (d != null) onDateChanged(d);
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
             color: kBackground, borderRadius: BorderRadius.circular(12),
             border: Border.all(color: deliveryDate != null ? kPrimary : kBorder),
           ),
           child: Row(children: [
-            const Icon(Icons.calendar_today_outlined, size: 16, color: kMutedFg),
+            Icon(Icons.calendar_today_outlined, size: 16, color: deliveryDate != null ? kPrimary : kMutedFg),
             const SizedBox(width: 10),
             Text(
               deliveryDate != null ? DateFormat('MMM d, yyyy').format(deliveryDate!) : 'Select delivery date',
-              style: TextStyle(color: deliveryDate != null ? kForeground : kMutedFg, fontSize: 13),
+              style: TextStyle(
+                color: deliveryDate != null ? kForeground : kMutedFg, fontSize: 13,
+                fontWeight: deliveryDate != null ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
           ]),
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 10),
 
       TextField(
         controller: notesCtrl,
         maxLines: 2,
-        decoration: const InputDecoration(
+        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        decoration: InputDecoration(
           hintText: 'Notes for the NGO (optional)',
-          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
       ),
       const SizedBox(height: 16),
 
-      ElevatedButton(
-        onPressed: (pledging || deliveryDate == null) ? null : onSubmit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: kPrimary,
-          minimumSize: const Size(double.infinity, 50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      SizedBox(
+        height: 50,
+        child: ElevatedButton(
+          onPressed: (pledging || deliveryDate == null) ? null : onSubmit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kPrimary, foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            disabledBackgroundColor: kPrimary.withValues(alpha: 0.4),
+          ),
+          child: pledging
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : Text('Submit Pledge', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700)),
         ),
-        child: pledging
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Text('Submit Pledge', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       ),
     ]),
   );
 }
 
-class _CategoryChip extends StatelessWidget {
-  final String category;
-  const _CategoryChip(this.category);
-
-  static const _icons = {
-    'food': Icons.restaurant_rounded,
-    'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded,
-    'supplies': Icons.school_rounded,
-  };
-  static const _colors = {
-    'food': Color(0xFF0891B2),
-    'clothing': Color(0xFF7C3AED),
-    'medicine': Color(0xFF059669),
-    'supplies': Color(0xFFD97706),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _colors[category] ?? kPrimary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(20)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(_icons[category] ?? Icons.inventory_2_rounded, size: 13, color: color),
-        const SizedBox(width: 5),
-        Text(category[0].toUpperCase() + category.substring(1),
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-      ]),
-    );
-  }
-}
-
-class _PriorityChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _PriorityChip(this.label, this.color);
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(20)),
-    child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-  );
-}
+// ── Info row ─────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;
@@ -415,8 +497,27 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(children: [
     Icon(icon, size: 15, color: kMutedFg),
-    const SizedBox(width: 8),
-    Text('$label: ', style: const TextStyle(fontSize: 13, color: kMutedFg)),
-    Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kForeground))),
+    const SizedBox(width: 10),
+    Text('$label: ', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
+    Expanded(child: Text(value, style: GoogleFonts.plusJakartaSans(
+      fontSize: 13, fontWeight: FontWeight.w700, color: kForeground,
+    ))),
   ]);
+}
+
+// ── Dot pattern painter (matches donor home hero) ─────────────────────────────
+
+class _DotPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.white.withAlpha(12);
+    const spacing = 20.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), 1.5, paint);
+      }
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter _) => false;
 }

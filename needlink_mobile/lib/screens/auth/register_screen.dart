@@ -20,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _ngoLocCtrl = TextEditingController();
   String _role = 'donor';
   bool _loading = false;
+  bool _googleLoading = false;
   bool _showPass = false;
   String? _error;
   late final AnimationController _animCtrl;
@@ -52,25 +53,37 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         password: _passCtrl.text,
       );
       final uid = res.user!.id;
-
       await Supabase.instance.client.from('profiles').insert({
         'id': uid, 'full_name': _nameCtrl.text.trim(),
         'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
       });
-
       if (_role == 'ngo_admin') {
         await Supabase.instance.client.from('ngos').insert({
           'admin_id': uid, 'name': _ngoNameCtrl.text.trim(),
           'location': _ngoLocCtrl.text.trim(), 'contact_email': _emailCtrl.text.trim(),
         });
       }
-
       if (!mounted) return;
       context.go(_role == 'ngo_admin' ? '/ngo' : '/donor');
     } on AuthException catch (e) {
       setState(() { _error = e.message; _loading = false; });
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() { _googleLoading = true; _error = null; });
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.needlink.app://login-callback',
+      );
+      if (mounted) setState(() => _googleLoading = false);
+    } on AuthException catch (e) {
+      if (mounted) setState(() { _error = e.message; _googleLoading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _googleLoading = false; });
     }
   }
 
@@ -87,7 +100,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           ),
           Column(
             children: [
-              // ── Dark header ──
               SafeArea(
                 bottom: false,
                 child: Padding(
@@ -108,14 +120,13 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       )),
                       const SizedBox(height: 5),
                       Text("Join Uganda's in-kind donation network.", style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white.withOpacity(0.5), fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.5), fontSize: 13,
                       )),
                     ],
                   ),
                 ),
               ),
 
-              // ── White form panel ──
               Expanded(
                 child: FadeTransition(
                   opacity: _fadeAnim,
@@ -123,8 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                     position: _slideAnim,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(28),
-                        topRight: Radius.circular(28),
+                        topLeft: Radius.circular(28), topRight: Radius.circular(28),
                       ),
                       child: Container(
                         color: Colors.white,
@@ -160,6 +170,43 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                 const SizedBox(height: 16),
                               ],
 
+                              // Google button
+                              SizedBox(
+                                height: 52,
+                                child: OutlinedButton(
+                                  onPressed: _googleLoading ? null : _googleSignIn,
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF0F2333),
+                                  ),
+                                  child: _googleLoading
+                                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))
+                                      : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                          _GoogleLogo(),
+                                          const SizedBox(width: 10),
+                                          Text('Continue with Google', style: GoogleFonts.plusJakartaSans(
+                                            fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF0F2333),
+                                          )),
+                                        ]),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              // OR divider
+                              Row(children: [
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Text('or', style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13, color: const Color(0xFF94A3B8),
+                                  )),
+                                ),
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                              ]),
+                              const SizedBox(height: 20),
+
                               AuthField(controller: _nameCtrl, label: 'Full name', icon: Icons.person_outline_rounded),
                               const SizedBox(height: 14),
                               AuthField(
@@ -184,7 +231,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                 ),
                               ),
 
-                              // NGO section with smooth AnimatedSize reveal
                               AnimatedSize(
                                 duration: const Duration(milliseconds: 350),
                                 curve: Curves.easeOutCubic,
@@ -199,11 +245,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                 child: ElevatedButton(
                                   onPressed: _loading ? null : _submit,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: kAccent,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: kAccent, foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    disabledBackgroundColor: kAccent.withOpacity(0.5),
+                                    disabledBackgroundColor: kAccent.withValues(alpha: 0.5),
                                   ),
                                   child: _loading
                                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
@@ -236,6 +281,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     );
   }
 }
+
+// ── Role card ─────────────────────────────────────────────────────────────────
 
 class _RoleCard extends StatelessWidget {
   final String value, selected, title, desc;
@@ -278,24 +325,71 @@ class _RoleCard extends StatelessWidget {
   }
 }
 
+// ── NGO section ───────────────────────────────────────────────────────────────
+
 class _NgoSection extends StatelessWidget {
   final TextEditingController nameCtrl, locCtrl;
   const _NgoSection({required this.nameCtrl, required this.locCtrl});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(height: 1, color: const Color(0xFFE8EDF2), margin: const EdgeInsets.only(bottom: 16)),
-        Text('NGO DETAILS', style: GoogleFonts.jetBrainsMono(
-          fontSize: 10, fontWeight: FontWeight.bold, color: kPrimary, letterSpacing: 1.5,
-        )),
-        const SizedBox(height: 14),
-        AuthField(controller: nameCtrl, label: 'NGO name', icon: Icons.business_outlined),
-        const SizedBox(height: 14),
-        AuthField(controller: locCtrl, label: 'District / location', icon: Icons.location_on_outlined),
-      ]),
-    );
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 20),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(height: 1, color: const Color(0xFFE8EDF2), margin: const EdgeInsets.only(bottom: 16)),
+      Text('NGO DETAILS', style: GoogleFonts.jetBrainsMono(
+        fontSize: 10, fontWeight: FontWeight.bold, color: kPrimary, letterSpacing: 1.5,
+      )),
+      const SizedBox(height: 14),
+      AuthField(controller: nameCtrl, label: 'NGO name', icon: Icons.business_outlined),
+      const SizedBox(height: 14),
+      AuthField(controller: locCtrl, label: 'District / location', icon: Icons.location_on_outlined),
+    ]),
+  );
+}
+
+// ── Google logo ───────────────────────────────────────────────────────────────
+
+class _GoogleLogo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 20, height: 20,
+    child: CustomPaint(painter: _GoogleLogoPainter()),
+  );
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width / 2;
+
+    final bgPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(cx, cy), r, bgPaint);
+
+    final arcPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.22
+      ..strokeCap = StrokeCap.butt;
+
+    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.65);
+
+    arcPaint.color = const Color(0xFF4285F4);
+    canvas.drawArc(rect, -0.5, 1.57, false, arcPaint);
+    arcPaint.color = const Color(0xFF34A853);
+    canvas.drawArc(rect, 1.07, 1.57, false, arcPaint);
+    arcPaint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(rect, 2.64, 0.79, false, arcPaint);
+    arcPaint.color = const Color(0xFFEA4335);
+    canvas.drawArc(rect, 3.43, 1.0, false, arcPaint);
+
+    final barPaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..strokeWidth = size.width * 0.22
+      ..strokeCap = StrokeCap.butt;
+    canvas.drawLine(Offset(cx, cy), Offset(cx + r * 0.65, cy), barPaint);
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter _) => false;
 }

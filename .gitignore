@@ -1,0 +1,13 @@
+# Secrets — never commit
+needlink_mobile/.env
+needlink_web/.env
+needlink_mobile/android/app/google-services.json
+needlink_mobile/ios/Runner/GoogleService-Info.plist
+supabase/.env
+
+# Supabase local state
+supabase/.temp/
+
+# OS
+.DS_Store
+Thumbs.db

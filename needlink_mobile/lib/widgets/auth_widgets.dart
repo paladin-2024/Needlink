@@ -30,6 +30,7 @@ class AuthField extends StatelessWidget {
   final bool obscureText;
   final bool autocorrect;
   final Widget? suffix;
+  final int maxLength;
 
   const AuthField({
     super.key,
@@ -40,6 +41,7 @@ class AuthField extends StatelessWidget {
     this.obscureText = false,
     this.autocorrect = true,
     this.suffix,
+    this.maxLength = 200,
   });
 
   @override
@@ -56,6 +58,9 @@ class AuthField extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           autocorrect: autocorrect,
+          maxLength: maxLength,
+          maxLines: 1,
+          buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
           style: GoogleFonts.plusJakartaSans(fontSize: 15, color: const Color(0xFF0F2333)),
           decoration: InputDecoration(
             hintText: label,
@@ -100,11 +105,11 @@ class NetworkPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final line = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..strokeWidth = 1.0;
-    final dot = Paint()..color = Colors.white.withOpacity(0.22);
+    final dot = Paint()..color = Colors.white.withValues(alpha: 0.22);
     final ring = Paint()
-      ..color = Colors.white.withOpacity(0.06)
+      ..color = Colors.white.withValues(alpha: 0.06)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 

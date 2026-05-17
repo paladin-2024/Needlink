@@ -7,7 +7,6 @@ import 'screens/auth/register_screen.dart';
 import 'screens/donor/donor_home_screen.dart';
 import 'screens/donor/need_detail_screen.dart';
 import 'screens/donor/my_pledges_screen.dart';
-import 'screens/donor/tracking_screen.dart';
 import 'screens/donor/tracking_detail_screen.dart';
 import 'screens/donor/profile_screen.dart';
 import 'screens/ngo/ngo_home_screen.dart';
@@ -20,34 +19,49 @@ import 'widgets/app_shell.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final user = Supabase.instance.client.auth.currentUser;
       final isAuth = user != null;
       final path = state.matchedLocation;
 
-      if (path == '/splash') {
-        if (!isAuth) return '/login';
-        return null;
+      if (!isAuth) {
+        if (path == '/login' || path == '/register') return null;
+        return '/login';
       }
-      if (!isAuth && path != '/login' && path != '/register') return '/login';
+
+      if (path == '/splash') return null;
+
+      // Enforce role boundaries — fetch role from DB (cached by Supabase client)
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+      final role = profile?['role'] as String?;
+
+      final isDonorPath = path.startsWith('/donor');
+      final isNgoPath   = path.startsWith('/ngo');
+
+      if (isDonorPath && role == 'ngo_admin') return '/ngo';
+      if (isNgoPath   && role == 'donor')     return '/donor';
+
       return null;
     },
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (_, __) => const _SplashScreen(),
+        builder: (_, _) => const _SplashScreen(),
       ),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
 
       // Donor tabs (persistent bottom nav)
       ShellRoute(
         builder: (context, state, child) => DonorShell(child: child),
         routes: [
-          GoRoute(path: '/donor', builder: (_, __) => const DonorHomeScreen()),
-          GoRoute(path: '/donor/pledges', builder: (_, __) => const MyPledgesScreen()),
-          GoRoute(path: '/donor/tracking', builder: (_, __) => const TrackingScreen()),
-          GoRoute(path: '/donor/profile', builder: (_, __) => const DonorProfileScreen()),
+          GoRoute(path: '/donor', builder: (_, _) => const DonorHomeScreen()),
+          GoRoute(path: '/donor/pledges', builder: (_, _) => const MyPledgesScreen()),
+          GoRoute(path: '/donor/profile', builder: (_, _) => const DonorProfileScreen()),
         ],
       ),
       // Donor detail screens (no bottom nav)
@@ -64,14 +78,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => NgoShell(child: child),
         routes: [
-          GoRoute(path: '/ngo', builder: (_, __) => const NgoHomeScreen()),
-          GoRoute(path: '/ngo/pledges', builder: (_, __) => const NgoPledgesScreen()),
-          GoRoute(path: '/ngo/reports', builder: (_, __) => const ImpactReportsScreen()),
-          GoRoute(path: '/ngo/settings', builder: (_, __) => const NgoSettingsScreen()),
+          GoRoute(path: '/ngo', builder: (_, _) => const NgoHomeScreen()),
+          GoRoute(path: '/ngo/pledges', builder: (_, _) => const NgoPledgesScreen()),
+          GoRoute(path: '/ngo/reports', builder: (_, _) => const ImpactReportsScreen()),
+          GoRoute(path: '/ngo/settings', builder: (_, _) => const NgoSettingsScreen()),
         ],
       ),
       // NGO detail screens (no bottom nav)
-      GoRoute(path: '/ngo/needs/new', builder: (_, __) => const CreateNeedScreen()),
+      GoRoute(path: '/ngo/needs/new', builder: (_, _) => const CreateNeedScreen()),
     ],
   );
 });

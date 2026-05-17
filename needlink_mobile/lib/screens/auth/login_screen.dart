@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _loading = false;
+  bool _googleLoading = false;
   bool _showPass = false;
   String? _error;
   late final AnimationController _animCtrl;
@@ -56,6 +57,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
+  Future<void> _googleSignIn() async {
+    setState(() { _googleLoading = true; _error = null; });
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.needlink.app://login-callback',
+      );
+      // OAuth opens browser — result handled via deep link / auth state change
+      if (mounted) setState(() => _googleLoading = false);
+    } on AuthException catch (e) {
+      if (mounted) setState(() { _error = e.message; _googleLoading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _googleLoading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +86,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
           Column(
             children: [
-              // ── Dark header ──
               SafeArea(
                 bottom: false,
                 child: Padding(
@@ -90,14 +106,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       )),
                       const SizedBox(height: 6),
                       Text('Sign in to your NeedLink account.', style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white.withOpacity(0.5), fontSize: 14,
+                        color: Colors.white.withValues(alpha:0.5), fontSize: 14,
                       )),
                     ],
                   ),
                 ),
               ),
 
-              // ── White form panel ──
               Expanded(
                 child: FadeTransition(
                   opacity: _fadeAnim,
@@ -105,8 +120,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     position: _slideAnim,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(28),
-                        topRight: Radius.circular(28),
+                        topLeft: Radius.circular(28), topRight: Radius.circular(28),
                       ),
                       child: Container(
                         color: Colors.white,
@@ -119,6 +133,43 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 AuthErrorBox(_error!),
                                 const SizedBox(height: 16),
                               ],
+
+                              // Google button
+                              SizedBox(
+                                height: 52,
+                                child: OutlinedButton(
+                                  onPressed: _googleLoading ? null : _googleSignIn,
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF0F2333),
+                                  ),
+                                  child: _googleLoading
+                                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))
+                                      : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                          _GoogleLogo(),
+                                          const SizedBox(width: 10),
+                                          Text('Continue with Google', style: GoogleFonts.plusJakartaSans(
+                                            fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF0F2333),
+                                          )),
+                                        ]),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              // OR divider
+                              Row(children: [
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Text('or', style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13, color: const Color(0xFF94A3B8),
+                                  )),
+                                ),
+                                const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                              ]),
+                              const SizedBox(height: 20),
 
                               AuthField(
                                 controller: _emailCtrl,
@@ -151,11 +202,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 child: ElevatedButton(
                                   onPressed: _loading ? null : _submit,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: kAccent,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: kAccent, foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    disabledBackgroundColor: kAccent.withOpacity(0.5),
+                                    disabledBackgroundColor: kAccent.withValues(alpha:0.5),
                                   ),
                                   child: _loading
                                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
@@ -187,4 +237,57 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ),
     );
   }
+}
+
+// ── Google logo (inline SVG-style using Canvas) ───────────────────────────────
+
+class _GoogleLogo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 20, height: 20,
+    child: CustomPaint(painter: _GoogleLogoPainter()),
+  );
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width / 2;
+
+    final bgPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(cx, cy), r, bgPaint);
+
+    // Draw "G" using colored arcs
+    final arcPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.22
+      ..strokeCap = StrokeCap.butt;
+
+    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.65);
+
+    arcPaint.color = const Color(0xFF4285F4);
+    canvas.drawArc(rect, -0.5, 1.57, false, arcPaint);
+    arcPaint.color = const Color(0xFF34A853);
+    canvas.drawArc(rect, 1.07, 1.57, false, arcPaint);
+    arcPaint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(rect, 2.64, 0.79, false, arcPaint);
+    arcPaint.color = const Color(0xFFEA4335);
+    canvas.drawArc(rect, 3.43, 1.0, false, arcPaint);
+
+    // Horizontal bar for "G"
+    final barPaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..strokeWidth = size.width * 0.22
+      ..strokeCap = StrokeCap.butt;
+    canvas.drawLine(
+      Offset(cx, cy),
+      Offset(cx + r * 0.65, cy),
+      barPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter _) => false;
 }

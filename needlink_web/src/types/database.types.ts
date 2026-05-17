@@ -265,7 +265,7 @@ export type Database = {
       need_status: "open" | "matched" | "closed"
       pledge_status: "pending" | "confirmed" | "rejected"
       urgency_level: "normal" | "urgent"
-      user_role: "donor" | "ngo_admin"
+      user_role: "donor" | "ngo_admin" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -400,7 +400,7 @@ export const Constants = {
       need_status: ["open", "matched", "closed"],
       pledge_status: ["pending", "confirmed", "rejected"],
       urgency_level: ["normal", "urgent"],
-      user_role: ["donor", "ngo_admin"],
+      user_role: ["donor", "ngo_admin", "super_admin"],
     },
   },
 } as const

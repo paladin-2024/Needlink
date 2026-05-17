@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../theme.dart';
@@ -11,15 +12,13 @@ class CreateNeedScreen extends StatefulWidget {
 }
 
 class _CreateNeedScreenState extends State<CreateNeedScreen> {
-  int _step = 0; // 0 = Basic Info, 1 = Items & Logistics, 2 = Review
+  int _step = 0;
 
-  // Step 1
   final _itemCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   String _category = 'food';
   String _urgency = 'normal';
 
-  // Step 2
   int _quantity = 1;
   DateTime? _deadline;
 
@@ -32,6 +31,18 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
 
   bool get _step1Valid => _itemCtrl.text.trim().isNotEmpty;
   bool get _step2Valid => _deadline != null;
+
+  static const _catColors = {
+    'food': Color(0xFFEA580C), 'clothing': Color(0xFF7C3AED),
+    'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
+  };
+  static const _catIcons = {
+    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
+    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+  };
+  static const _catLabels = {
+    'food': 'Food', 'clothing': 'Clothing', 'medicine': 'Medicine', 'supplies': 'Supplies',
+  };
 
   Future<void> _submit() async {
     setState(() { _loading = true; _error = null; });
@@ -59,68 +70,99 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post a Need'),
+        title: Text('Post a Need', style: GoogleFonts.sora(fontWeight: FontWeight.w800, fontSize: 17)),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => context.go('/ngo'),
         ),
       ),
       body: Column(children: [
-        // Step indicator
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        // ── Numbered step indicator ──────────────────────────────────────────
+        Container(
+          color: kSurface,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: Row(children: List.generate(3, (i) {
             final done = i < _step;
             final active = i == _step;
+            final color = done ? kMatched : active ? kPrimary : kMuted;
+            final labels = ['Basic Info', 'Logistics', 'Review'];
             return Expanded(child: Row(children: [
-              Expanded(child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                height: 4,
-                decoration: BoxDecoration(
-                  color: done || active ? kPrimary : kMuted,
-                  borderRadius: BorderRadius.circular(2),
+              Column(children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  width: 28, height: 28,
+                  decoration: BoxDecoration(
+                    color: done ? kMatched : active ? kPrimary : kSurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: done || active ? 0 : 1.5),
+                  ),
+                  child: Center(child: done
+                    ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                    : Text('${i + 1}', style: TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w800,
+                        color: active ? Colors.white : kMutedFg,
+                      )),
+                  ),
                 ),
-              )),
-              if (i < 2) const SizedBox(width: 4),
+                const SizedBox(height: 4),
+                Text(labels[i], style: TextStyle(
+                  fontSize: 10, fontWeight: active ? FontWeight.w700 : FontWeight.normal,
+                  color: active ? kForeground : kMutedFg,
+                )),
+              ]),
+              if (i < 2) ...[
+                const SizedBox(width: 6),
+                Expanded(child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: i < _step ? kMatched : kMuted,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                )),
+                const SizedBox(width: 6),
+              ],
             ]));
           })),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(
-              'Step ${_step + 1} of 3  ·  ${['Basic Info', 'Items & Logistics', 'Review'][_step]}',
-              style: const TextStyle(fontSize: 12, color: kMutedFg),
-            ),
-            if (_error != null)
-              Text(_error!, style: const TextStyle(fontSize: 11, color: Color(0xFFDC2626))),
-          ]),
-        ),
+
+        if (_error != null)
+          Container(
+            color: const Color(0xFFFEF2F2),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(children: [
+              const Icon(Icons.error_outline_rounded, size: 14, color: Color(0xFFDC2626)),
+              const SizedBox(width: 6),
+              Expanded(child: Text(_error!, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626)))),
+            ]),
+          ),
 
         Expanded(child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: [_buildStep1, _buildStep2, _buildReview][_step](),
         )),
 
-        // Bottom nav buttons
+        // ── Navigation buttons ───────────────────────────────────────────────
         Container(
           padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
           decoration: BoxDecoration(
-            color: kSurface, border: Border(top: BorderSide(color: kBorder)),
+            color: kSurface, border: const Border(top: BorderSide(color: kBorder)),
           ),
           child: Row(children: [
-            if (_step > 0)
+            if (_step > 0) ...[
               Expanded(child: OutlinedButton(
-                onPressed: () => setState(() => _step--),
+                onPressed: () => setState(() { _step--; _error = null; }),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
+                  minimumSize: const Size(double.infinity, 50),
                   side: const BorderSide(color: kBorder),
                   foregroundColor: kForeground,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Back'),
+                child: Text('Back', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
               )),
-            if (_step > 0) const SizedBox(width: 12),
-            Expanded(child: ElevatedButton(
+              const SizedBox(width: 12),
+            ],
+            Expanded(flex: _step > 0 ? 2 : 1, child: ElevatedButton(
               onPressed: _loading ? null : () {
                 if (_step == 0) {
                   if (!_step1Valid) { setState(() => _error = 'Item name is required'); return; }
@@ -133,12 +175,16 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: kPrimary,
-                minimumSize: const Size(double.infinity, 48),
+                backgroundColor: kPrimary, minimumSize: const Size(double.infinity, 50),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _loading
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(_step < 2 ? 'Continue' : 'Publish Need', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  : Text(
+                      _step < 2 ? 'Continue' : 'Publish Need',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700),
+                    ),
             )),
           ]),
         ),
@@ -147,57 +193,57 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
   }
 
   Widget _buildStep1() => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('What do you need?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kForeground)),
+    Text('What do you need?', style: GoogleFonts.sora(
+      fontSize: 18, fontWeight: FontWeight.w800, color: kForeground,
+    )),
     const SizedBox(height: 4),
-    const Text('Describe the item your organization is requesting.',
-      style: TextStyle(fontSize: 13, color: kMutedFg)),
+    Text('Describe the item your organization is requesting.',
+      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
     const SizedBox(height: 20),
 
     TextField(
       controller: _itemCtrl,
+      style: GoogleFonts.plusJakartaSans(fontSize: 14),
       decoration: const InputDecoration(labelText: 'Item name *', hintText: 'e.g. School exercise books'),
       textCapitalization: TextCapitalization.sentences,
       onChanged: (_) => setState(() {}),
     ),
-    const SizedBox(height: 16),
+    const SizedBox(height: 20),
 
-    const Text('Category *', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kForeground)),
+    Text('CATEGORY', style: GoogleFonts.sora(
+      fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+    )),
     const SizedBox(height: 10),
-    Wrap(spacing: 8, runSpacing: 8, children: [
-      ...['food', 'clothing', 'medicine', 'supplies'].map((c) {
-        const icons = {
-          'food': Icons.restaurant_rounded,
-          'clothing': Icons.checkroom_rounded,
-          'medicine': Icons.medication_rounded,
-          'supplies': Icons.school_rounded,
-        };
-        const labels = {'food': 'Food', 'clothing': 'Clothing', 'medicine': 'Medicine', 'supplies': 'Supplies'};
-        final selected = _category == c;
-        return GestureDetector(
-          onTap: () => setState(() => _category = c),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? kPrimary.withAlpha(20) : kSurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: selected ? kPrimary : kBorder),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(icons[c] ?? Icons.inventory_2_rounded, size: 16, color: selected ? kPrimary : kMutedFg),
-              const SizedBox(width: 6),
-              Text(labels[c] ?? c, style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600,
-                color: selected ? kPrimary : kMutedFg,
-              )),
-            ]),
+    Row(children: ['food', 'clothing', 'medicine', 'supplies'].map((c) {
+      final selected = _category == c;
+      final color = _catColors[c] ?? kPrimary;
+      return Expanded(child: GestureDetector(
+        onTap: () => setState(() => _category = c),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? color.withAlpha(18) : kSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: selected ? color : kBorder, width: selected ? 1.5 : 1),
           ),
-        );
-      }),
-    ]),
-    const SizedBox(height: 16),
+          child: Column(children: [
+            Icon(_catIcons[c] ?? Icons.inventory_2_rounded, size: 20, color: selected ? color : kMutedFg),
+            const SizedBox(height: 4),
+            Text(_catLabels[c] ?? c, style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              color: selected ? color : kMutedFg,
+            )),
+          ]),
+        ),
+      ));
+    }).toList()),
+    const SizedBox(height: 20),
 
-    const Text('Priority *', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kForeground)),
+    Text('PRIORITY', style: GoogleFonts.sora(
+      fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+    )),
     const SizedBox(height: 10),
     Row(children: [
       _UrgencyChip('Normal', Icons.radio_button_unchecked_rounded, _urgency == 'normal', kPrimary,
@@ -206,11 +252,12 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
       _UrgencyChip('Urgent', Icons.bolt_rounded, _urgency == 'urgent', kUrgent,
         () => setState(() => _urgency = 'urgent')),
     ]),
-    const SizedBox(height: 16),
+    const SizedBox(height: 20),
 
     TextField(
       controller: _descCtrl,
       maxLines: 4,
+      style: GoogleFonts.plusJakartaSans(fontSize: 14),
       decoration: const InputDecoration(
         labelText: 'Description (optional)',
         hintText: 'More context about this need, who it helps, specific requirements…',
@@ -222,51 +269,59 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
   ]);
 
   Widget _buildStep2() => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('Items & Logistics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kForeground)),
+    Text('Items & Logistics', style: GoogleFonts.sora(
+      fontSize: 18, fontWeight: FontWeight.w800, color: kForeground,
+    )),
     const SizedBox(height: 4),
-    const Text('Set the quantity needed and your collection deadline.',
-      style: TextStyle(fontSize: 13, color: kMutedFg)),
+    Text('Set the quantity needed and your collection deadline.',
+      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
     const SizedBox(height: 20),
 
+    Text('QUANTITY NEEDED', style: GoogleFonts.sora(
+      fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+    )),
+    const SizedBox(height: 10),
     Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
       ),
-      child: Column(children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('Quantity needed', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: kForeground)),
-          Row(children: [
-            GestureDetector(
-              onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
-              child: Container(
-                width: 34, height: 34,
-                decoration: BoxDecoration(
-                  color: _quantity > 1 ? kPrimary.withAlpha(20) : kMuted,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.remove_rounded, size: 18, color: _quantity > 1 ? kPrimary : kMutedFg),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Units', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: kForeground)),
+        Row(children: [
+          GestureDetector(
+            onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: _quantity > 1 ? kPrimary.withAlpha(20) : kMuted,
+                borderRadius: BorderRadius.circular(9),
               ),
+              child: Icon(Icons.remove_rounded, size: 18, color: _quantity > 1 ? kPrimary : kMutedFg),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text('$_quantity', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: kForeground)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text('$_quantity', style: GoogleFonts.sora(
+              fontSize: 22, fontWeight: FontWeight.w900, color: kForeground,
+            )),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _quantity++),
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(9)),
+              child: const Icon(Icons.add_rounded, size: 18, color: kPrimary),
             ),
-            GestureDetector(
-              onTap: () => setState(() => _quantity++),
-              child: Container(
-                width: 34, height: 34,
-                decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.add_rounded, size: 18, color: kPrimary),
-              ),
-            ),
-          ]),
+          ),
         ]),
       ]),
     ),
-    const SizedBox(height: 14),
+    const SizedBox(height: 20),
 
-    const Text('Collection deadline *', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kForeground)),
+    Text('COLLECTION DEADLINE', style: GoogleFonts.sora(
+      fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+    )),
     const SizedBox(height: 10),
     GestureDetector(
       onTap: () async {
@@ -283,7 +338,7 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
         if (d != null) setState(() => _deadline = d);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(
           color: _deadline != null ? kPrimary.withAlpha(10) : kBackground,
           borderRadius: BorderRadius.circular(12),
@@ -294,7 +349,11 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
           const SizedBox(width: 10),
           Text(
             _deadline != null ? DateFormat('MMMM d, yyyy').format(_deadline!) : 'Select a deadline',
-            style: TextStyle(color: _deadline != null ? kForeground : kMutedFg, fontWeight: _deadline != null ? FontWeight.w600 : FontWeight.normal),
+            style: TextStyle(
+              color: _deadline != null ? kForeground : kMutedFg,
+              fontWeight: _deadline != null ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 14,
+            ),
           ),
         ]),
       ),
@@ -302,60 +361,92 @@ class _CreateNeedScreenState extends State<CreateNeedScreen> {
     const SizedBox(height: 20),
   ]);
 
-  Widget _buildReview() => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('Review & Publish', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kForeground)),
-    const SizedBox(height: 4),
-    const Text('Check the details before publishing this need.',
-      style: TextStyle(fontSize: 13, color: kMutedFg)),
-    const SizedBox(height: 20),
+  Widget _buildReview() {
+    final catColor = _catColors[_category] ?? kPrimary;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('Review & Publish', style: GoogleFonts.sora(
+        fontSize: 18, fontWeight: FontWeight.w800, color: kForeground,
+      )),
+      const SizedBox(height: 4),
+      Text('Check the details before publishing this need.',
+        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
+      const SizedBox(height: 20),
 
-    Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kSurface, borderRadius: BorderRadius.circular(16), border: Border.all(color: kBorder),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          _ReviewChip(_category, kPrimary),
-          const SizedBox(width: 8),
-          _ReviewChip(_urgency == 'urgent' ? 'URGENT' : 'Normal', _urgency == 'urgent' ? kUrgent : kMutedFg),
-        ]),
-        const SizedBox(height: 12),
-        Text(_itemCtrl.text.trim(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: kForeground)),
-        if (_descCtrl.text.isNotEmpty) ...[
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: kSurface, borderRadius: BorderRadius.circular(16), border: Border.all(color: kBorder),
+          boxShadow: const [
+            BoxShadow(color: Color(0x140891B2), blurRadius: 10, offset: Offset(0, 2)),
+            BoxShadow(color: Color(0x08000000), blurRadius: 3, offset: Offset(0, 1)),
+          ],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: catColor.withAlpha(20), borderRadius: BorderRadius.circular(20)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(_catIcons[_category] ?? Icons.inventory_2_rounded, size: 12, color: catColor),
+                const SizedBox(width: 4),
+                Text(
+                  (_catLabels[_category] ?? _category),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: catColor),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            if (_urgency == 'urgent')
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: kUrgent.withAlpha(20), borderRadius: BorderRadius.circular(20)),
+                child: const Text('URGENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kUrgent)),
+              ),
+          ]),
+          const SizedBox(height: 12),
+          Text(_itemCtrl.text.trim(), style: GoogleFonts.sora(
+            fontSize: 18, fontWeight: FontWeight.w800, color: kForeground,
+          )),
+          if (_descCtrl.text.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(_descCtrl.text.trim(), style: GoogleFonts.plusJakartaSans(
+              fontSize: 13, color: kMutedFg, height: 1.55,
+            )),
+          ],
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: kBorder),
+          const SizedBox(height: 14),
+          _ReviewRow(Icons.inventory_2_outlined, 'Quantity', '$_quantity units'),
           const SizedBox(height: 8),
-          Text(_descCtrl.text.trim(), style: const TextStyle(fontSize: 13, color: kMutedFg, height: 1.5)),
-        ],
-        const SizedBox(height: 14),
-        const Divider(height: 1),
-        const SizedBox(height: 14),
-        _ReviewRow(Icons.inventory_2_outlined, 'Quantity', '$_quantity units'),
-        const SizedBox(height: 8),
-        _ReviewRow(Icons.calendar_today_outlined, 'Deadline', _deadline != null ? DateFormat('MMMM d, yyyy').format(_deadline!) : '-'),
-        const SizedBox(height: 8),
-        _ReviewRow(Icons.category_outlined, 'Category', _category[0].toUpperCase() + _category.substring(1)),
-      ]),
-    ),
-    const SizedBox(height: 12),
-
-    Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: kPrimary.withAlpha(10), borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kPrimary.withAlpha(40)),
+          _ReviewRow(Icons.calendar_today_outlined, 'Deadline',
+            _deadline != null ? DateFormat('MMMM d, yyyy').format(_deadline!) : '-'),
+          const SizedBox(height: 8),
+          _ReviewRow(Icons.category_outlined, 'Category', _catLabels[_category] ?? _category),
+        ]),
       ),
-      child: Row(children: const [
-        Icon(Icons.info_outline_rounded, size: 16, color: kPrimary),
-        SizedBox(width: 8),
-        Expanded(child: Text(
-          'Once published, donors on NeedLink will be able to see and pledge to this need.',
-          style: TextStyle(fontSize: 12, color: kPrimary),
-        )),
-      ]),
-    ),
-    const SizedBox(height: 20),
-  ]);
+      const SizedBox(height: 12),
+
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: kPrimary.withAlpha(10), borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: kPrimary.withAlpha(40)),
+        ),
+        child: Row(children: const [
+          Icon(Icons.info_outline_rounded, size: 16, color: kPrimary),
+          SizedBox(width: 8),
+          Expanded(child: Text(
+            'Once published, donors on NeedLink will see and pledge to this need.',
+            style: TextStyle(fontSize: 12, color: kPrimary),
+          )),
+        ]),
+      ),
+      const SizedBox(height: 20),
+    ]);
+  }
 }
+
+// ── Published success ─────────────────────────────────────────────────────────
 
 class _PublishedScreen extends StatelessWidget {
   final VoidCallback onDone;
@@ -373,27 +464,36 @@ class _PublishedScreen extends StatelessWidget {
             child: const Icon(Icons.check_circle_rounded, size: 44, color: kMatched),
           ),
           const SizedBox(height: 20),
-          const Text('Need Published!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kForeground)),
+          Text('Need Published!', style: GoogleFonts.sora(
+            fontSize: 22, fontWeight: FontWeight.w900, color: kForeground,
+          )),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Your need is now live and visible to donors on NeedLink.',
-            style: TextStyle(fontSize: 14, color: kMutedFg, height: 1.5),
+            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: kMutedFg, height: 1.55),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: onDone,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kPrimary,
-              minimumSize: const Size(double.infinity, 50),
+          SizedBox(
+            width: double.infinity, height: 50,
+            child: ElevatedButton(
+              onPressed: onDone,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimary, elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('Back to Dashboard', style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700, fontSize: 15,
+              )),
             ),
-            child: const Text('Back to Dashboard', style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ]),
       ),
     ),
   );
 }
+
+// ── Urgency chip ──────────────────────────────────────────────────────────────
 
 class _UrgencyChip extends StatelessWidget {
   final String label;
@@ -418,31 +518,21 @@ class _UrgencyChip extends StatelessWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Icon(icon, size: 16, color: selected ? color : kMutedFg),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? color : kMutedFg)),
+          Text(label, style: TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w700,
+            color: selected ? color : kMutedFg,
+          )),
         ]),
       ),
     ),
   );
 }
 
-class _ReviewChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _ReviewChip(this.label, this.color);
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(20)),
-    child: Text(label[0].toUpperCase() + label.substring(1),
-      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-  );
-}
+// ── Review row ────────────────────────────────────────────────────────────────
 
 class _ReviewRow extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final String value;
+  final String label, value;
   const _ReviewRow(this.icon, this.label, this.value);
 
   @override
@@ -450,6 +540,6 @@ class _ReviewRow extends StatelessWidget {
     Icon(icon, size: 15, color: kMutedFg),
     const SizedBox(width: 8),
     Text('$label: ', style: const TextStyle(fontSize: 13, color: kMutedFg)),
-    Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: kForeground)),
+    Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: kForeground)),
   ]);
 }

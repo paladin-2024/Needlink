@@ -1,0 +1,290 @@
+<h2>What should the Super Admin web portal look like?</h2>
+<p class="subtitle">This replaces everything on the web. One login, one dashboard — full system visibility.</p>
+
+<style>
+  .layouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px; }
+  .layout-card { border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+  .layout-card:hover { border-color: rgba(255,255,255,0.2); }
+  .layout-card.selected { border-color: #60A5FA; }
+  .screen { background: #F0FDFF; width: 100%; height: 240px; position: relative; overflow: hidden; display: flex; }
+
+  /* Layout A: sidebar + main */
+  .sidebar { width: 56px; background: #164E63; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 6px; flex-shrink: 0; }
+  .sidebar-logo { width: 28px; height: 28px; background: #0891B2; border-radius: 8px; margin-bottom: 8px; }
+  .sidebar-item { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+  .sidebar-item.active { background: #0891B2; }
+  .sidebar-dot { width: 14px; height: 14px; border-radius: 3px; background: rgba(255,255,255,0.6); }
+  .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { height: 36px; background: white; border-bottom: 1px solid #E8EDF2; display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+  .topbar-title { font-size: 11px; font-weight: 700; color: #164E63; }
+  .topbar-badge { background: #ECFEFF; color: #0891B2; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+  .content-area { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+  .stat-row { display: flex; gap: 6px; }
+  .stat-tile { flex: 1; background: white; border-radius: 8px; padding: 7px 8px; border: 1px solid #E8EDF2; }
+  .stat-num { font-size: 14px; font-weight: 800; color: #164E63; }
+  .stat-lbl { font-size: 7px; color: #64748B; margin-top: 1px; }
+  .stat-tile.accent { background: #0891B2; }
+  .stat-tile.accent .stat-num { color: white; }
+  .stat-tile.accent .stat-lbl { color: rgba(255,255,255,0.7); }
+  .table-block { background: white; border-radius: 8px; border: 1px solid #E8EDF2; overflow: hidden; flex: 1; }
+  .table-hdr { background: #F8FAFC; padding: 5px 8px; display: flex; gap: 20px; }
+  .table-hdr-cell { font-size: 7px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+  .table-row { padding: 5px 8px; display: flex; gap: 20px; border-top: 1px solid #F1F5F9; align-items: center; }
+  .table-cell { font-size: 7px; color: #475569; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip { font-size: 6px; font-weight: 700; padding: 2px 5px; border-radius: 8px; }
+  .chip.verified { background: #DCFCE7; color: #15803D; }
+  .chip.pending { background: #FEF9C3; color: #A16207; }
+  .chip.active { background: #DBEAFE; color: #1D4ED8; }
+
+  /* Layout B: top nav wide */
+  .topnav { height: 40px; background: #164E63; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+  .topnav-logo { font-size: 11px; font-weight: 900; color: white; letter-spacing: -0.5px; margin-right: 8px; }
+  .topnav-item { font-size: 8px; color: rgba(255,255,255,0.6); font-weight: 600; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+  .topnav-item.active { background: rgba(255,255,255,0.15); color: white; }
+  .b-content { flex: 1; padding: 10px; display: flex; gap: 8px; overflow: hidden; }
+  .b-left { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .b-right { width: 90px; display: flex; flex-direction: column; gap: 6px; }
+  .b-stat-row { display: flex; gap: 6px; }
+  .b-big-chart { background: white; border-radius: 8px; border: 1px solid #E8EDF2; flex: 1; padding: 8px; }
+  .b-chart-title { font-size: 8px; font-weight: 700; color: #164E63; margin-bottom: 6px; }
+  .b-chart-bars { display: flex; align-items: flex-end; gap: 3px; height: 50px; }
+  .b-bar { background: #CFFAFE; border-radius: 3px 3px 0 0; flex: 1; }
+  .b-bar.hi { background: #0891B2; }
+  .b-side-card { background: white; border-radius: 8px; border: 1px solid #E8EDF2; padding: 8px; }
+  .b-side-lbl { font-size: 7px; color: #64748B; margin-bottom: 3px; }
+  .b-side-val { font-size: 16px; font-weight: 800; color: #0891B2; }
+  .b-side-sub { font-size: 7px; color: #64748B; margin-top: 1px; }
+
+  /* Layout C: minimal command-style */
+  .c-sidebar { width: 140px; background: #0C1A22; height: 100%; padding: 10px 8px; flex-shrink: 0; }
+  .c-logo { font-size: 10px; font-weight: 900; color: #7BC5D4; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; padding: 0 4px; }
+  .c-section-lbl { font-size: 7px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; padding: 0 4px; }
+  .c-nav-item { font-size: 8px; color: rgba(255,255,255,0.5); padding: 5px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; margin-bottom: 1px; }
+  .c-nav-item.active { background: rgba(8,145,178,0.2); color: #7BC5D4; }
+  .c-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+  .c-main { flex: 1; background: #F8FAFB; display: flex; flex-direction: column; overflow: hidden; }
+  .c-header { background: white; border-bottom: 1px solid #E8EDF2; padding: 8px 12px; }
+  .c-page-title { font-size: 13px; font-weight: 800; color: #164E63; }
+  .c-page-sub { font-size: 8px; color: #64748B; }
+  .c-body { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+  .c-kpi-row { display: flex; gap: 6px; }
+  .c-kpi { flex: 1; background: white; border-radius: 8px; border: 1px solid #E8EDF2; padding: 8px; }
+  .c-kpi-val { font-size: 16px; font-weight: 800; color: #164E63; }
+  .c-kpi-lbl { font-size: 7px; color: #64748B; margin-top: 1px; }
+  .c-kpi.hl { border-color: #0891B2; }
+  .c-kpi.hl .c-kpi-val { color: #0891B2; }
+  .c-list { background: white; border-radius: 8px; border: 1px solid #E8EDF2; flex: 1; overflow: hidden; }
+  .c-list-hdr { padding: 6px 10px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 8px; font-weight: 700; color: #164E63; display: flex; justify-content: space-between; align-items: center; }
+  .c-list-badge { background: #ECFEFF; color: #0891B2; font-size: 7px; font-weight: 700; padding: 1px 5px; border-radius: 8px; }
+  .c-list-row { padding: 5px 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #F8FAFC; }
+  .c-avatar { width: 18px; height: 18px; border-radius: 50%; background: #CFFAFE; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 800; color: #0891B2; flex-shrink: 0; }
+  .c-row-name { font-size: 8px; font-weight: 600; color: #164E63; flex: 1; }
+  .c-row-sub { font-size: 7px; color: #64748B; }
+  .c-btn { font-size: 7px; font-weight: 700; padding: 2px 6px; border-radius: 5px; }
+  .c-btn.approve { background: #DCFCE7; color: #15803D; }
+  .c-btn.reject { background: #FEF2F2; color: #DC2626; }
+
+  .layout-meta { padding: 12px; background: #1E2A30; }
+  .layout-name { font-size: 14px; font-weight: 800; color: white; margin-bottom: 3px; }
+  .layout-desc { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  .features-section { margin-top: 28px; }
+  .features-section h3 { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 12px; font-weight: 600; }
+  .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .feature-tile { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; }
+  .feature-icon { font-size: 18px; margin-bottom: 6px; }
+  .feature-name { font-size: 12px; font-weight: 700; color: #E2F4F7; margin-bottom: 3px; }
+  .feature-desc { font-size: 10px; color: rgba(255,255,255,0.45); line-height: 1.4; }
+</style>
+
+<div class="layouts">
+
+  <!-- A: Icon sidebar -->
+  <div class="layout-card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="screen">
+      <div class="sidebar">
+        <div class="sidebar-logo"></div>
+        <div class="sidebar-item active"><div class="sidebar-dot"></div></div>
+        <div class="sidebar-item"><div class="sidebar-dot" style="opacity:0.4"></div></div>
+        <div class="sidebar-item"><div class="sidebar-dot" style="opacity:0.4"></div></div>
+        <div class="sidebar-item"><div class="sidebar-dot" style="opacity:0.4"></div></div>
+        <div class="sidebar-item"><div class="sidebar-dot" style="opacity:0.4"></div></div>
+      </div>
+      <div class="main-area">
+        <div class="topbar">
+          <span class="topbar-title">Overview</span>
+          <span class="topbar-badge">3 pending</span>
+        </div>
+        <div class="content-area">
+          <div class="stat-row">
+            <div class="stat-tile accent"><div class="stat-num">24</div><div class="stat-lbl">Active NGOs</div></div>
+            <div class="stat-tile"><div class="stat-num">1,204</div><div class="stat-lbl">Donors</div></div>
+            <div class="stat-tile"><div class="stat-num">87</div><div class="stat-lbl">Open Needs</div></div>
+          </div>
+          <div class="table-block">
+            <div class="table-hdr">
+              <div class="table-hdr-cell" style="flex:1.5">NGO Name</div>
+              <div class="table-hdr-cell" style="flex:1">Location</div>
+              <div class="table-hdr-cell" style="flex:0.8">Status</div>
+            </div>
+            <div class="table-row">
+              <div class="table-cell" style="flex:1.5">Kampala Children Trust</div>
+              <div class="table-cell" style="flex:1">Kampala</div>
+              <div class="table-cell" style="flex:0.8"><span class="chip verified">Verified</span></div>
+            </div>
+            <div class="table-row">
+              <div class="table-cell" style="flex:1.5">Hope Uganda</div>
+              <div class="table-cell" style="flex:1">Entebbe</div>
+              <div class="table-cell" style="flex:0.8"><span class="chip pending">Pending</span></div>
+            </div>
+            <div class="table-row">
+              <div class="table-cell" style="flex:1.5">Heal Africa</div>
+              <div class="table-cell" style="flex:1">Jinja</div>
+              <div class="table-cell" style="flex:0.8"><span class="chip active">Active</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <div class="layout-name">A — Icon Sidebar</div>
+      <div class="layout-desc">Compact icon nav on the left, stats + tables in the main area. Dense and efficient.</div>
+    </div>
+  </div>
+
+  <!-- B: Top nav + charts -->
+  <div class="layout-card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="screen" style="flex-direction:column">
+      <div class="topnav">
+        <div class="topnav-logo">NeedLink</div>
+        <div class="topnav-item active">Overview</div>
+        <div class="topnav-item">NGOs</div>
+        <div class="topnav-item">Donors</div>
+        <div class="topnav-item">Needs</div>
+        <div class="topnav-item">Pledges</div>
+      </div>
+      <div style="display:flex;flex:1;overflow:hidden">
+        <div class="b-content">
+          <div class="b-left">
+            <div class="b-stat-row">
+              <div class="stat-tile accent" style="flex:1"><div class="stat-num">24</div><div class="stat-lbl">NGOs</div></div>
+              <div class="stat-tile" style="flex:1"><div class="stat-num">1,204</div><div class="stat-lbl">Donors</div></div>
+              <div class="stat-tile" style="flex:1"><div class="stat-num">87</div><div class="stat-lbl">Needs</div></div>
+              <div class="stat-tile" style="flex:1"><div class="stat-num">342</div><div class="stat-lbl">Pledges</div></div>
+            </div>
+            <div class="b-big-chart">
+              <div class="b-chart-title">Pledge activity (30 days)</div>
+              <div class="b-chart-bars">
+                <div class="b-bar" style="height:30%"></div>
+                <div class="b-bar" style="height:45%"></div>
+                <div class="b-bar hi" style="height:60%"></div>
+                <div class="b-bar" style="height:40%"></div>
+                <div class="b-bar hi" style="height:75%"></div>
+                <div class="b-bar" style="height:55%"></div>
+                <div class="b-bar hi" style="height:90%"></div>
+                <div class="b-bar" style="height:65%"></div>
+                <div class="b-bar" style="height:70%"></div>
+                <div class="b-bar hi" style="height:80%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="b-right">
+            <div class="b-side-card">
+              <div class="b-side-lbl">Pending NGOs</div>
+              <div class="b-side-val">3</div>
+              <div class="b-side-sub">need review</div>
+            </div>
+            <div class="b-side-card">
+              <div class="b-side-lbl">Fulfillment rate</div>
+              <div class="b-side-val">71%</div>
+              <div class="b-side-sub">this month</div>
+            </div>
+            <div class="b-side-card">
+              <div class="b-side-lbl">New users</div>
+              <div class="b-side-val">38</div>
+              <div class="b-side-sub">last 7 days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <div class="layout-name">B — Top Nav + Analytics</div>
+      <div class="layout-desc">Horizontal nav, analytics charts front and center. Data-first admin experience.</div>
+    </div>
+  </div>
+
+  <!-- C: Full sidebar with labels -->
+  <div class="layout-card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="screen">
+      <div class="c-sidebar">
+        <div class="c-logo">NeedLink</div>
+        <div class="c-section-lbl">Management</div>
+        <div class="c-nav-item active"><div class="c-nav-dot"></div>Overview</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>NGOs</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>Donors</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>Needs</div>
+        <div class="c-section-lbl">System</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>Pledges</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>Reports</div>
+        <div class="c-nav-item"><div class="c-nav-dot"></div>Settings</div>
+      </div>
+      <div class="c-main">
+        <div class="c-header">
+          <div class="c-page-title">NGO Management</div>
+          <div class="c-page-sub">Verify and manage organizations</div>
+        </div>
+        <div class="c-body">
+          <div class="c-kpi-row">
+            <div class="c-kpi hl"><div class="c-kpi-val">24</div><div class="c-kpi-lbl">Total NGOs</div></div>
+            <div class="c-kpi"><div class="c-kpi-val" style="color:#D97706">3</div><div class="c-kpi-lbl">Pending</div></div>
+            <div class="c-kpi"><div class="c-kpi-val" style="color:#16A34A">21</div><div class="c-kpi-lbl">Verified</div></div>
+          </div>
+          <div class="c-list">
+            <div class="c-list-hdr">Pending Approval <span class="c-list-badge">3 new</span></div>
+            <div class="c-list-row">
+              <div class="c-avatar">H</div>
+              <div style="flex:1"><div class="c-row-name">Hope Uganda</div><div class="c-row-sub">Entebbe · Reg: NGO/2026/041</div></div>
+              <div style="display:flex;gap:4px"><span class="c-btn approve">Verify</span><span class="c-btn reject">Reject</span></div>
+            </div>
+            <div class="c-list-row">
+              <div class="c-avatar">R</div>
+              <div style="flex:1"><div class="c-row-name">Reach Out Uganda</div><div class="c-row-sub">Gulu · Reg: NGO/2026/044</div></div>
+              <div style="display:flex;gap:4px"><span class="c-btn approve">Verify</span><span class="c-btn reject">Reject</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <div class="layout-name">C — Full Sidebar (Recommended)</div>
+      <div class="layout-desc">Labeled sidebar with sections, action-first pages. Best for daily admin work like verifying NGOs.</div>
+    </div>
+  </div>
+</div>
+
+<div class="features-section">
+  <h3>All three layouts include these admin capabilities:</h3>
+  <div class="features-grid">
+    <div class="feature-tile">
+      <div class="feature-icon">🏢</div>
+      <div class="feature-name">NGO Management</div>
+      <div class="feature-desc">Verify, suspend, or remove NGOs. View their needs and pledge history.</div>
+    </div>
+    <div class="feature-tile">
+      <div class="feature-icon">👥</div>
+      <div class="feature-name">User Management</div>
+      <div class="feature-desc">View all donors. Suspend accounts. See donation history per user.</div>
+    </div>
+    <div class="feature-tile">
+      <div class="feature-icon">📦</div>
+      <div class="feature-name">Needs Overview</div>
+      <div class="feature-desc">System-wide view of all donation needs across every NGO.</div>
+    </div>
+    <div class="feature-tile">
+      <div class="feature-icon">📊</div>
+      <div class="feature-name">Analytics</div>
+      <div class="feature-desc">Platform-wide stats: total pledges, fulfillment rates, top NGOs.</div>
+    </div>
+  </div>
+</div>

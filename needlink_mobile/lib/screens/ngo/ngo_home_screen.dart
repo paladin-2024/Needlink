@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
@@ -10,234 +11,254 @@ class NgoHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ngoAsync = ref.watch(myNgoProvider);
     final profileAsync = ref.watch(profileProvider);
     final needsAsync = ref.watch(myNgoNeedsProvider);
     final pledgesAsync = ref.watch(myNgoPendingPledgesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('NGO Dashboard'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/ngo/needs/new'),
-        backgroundColor: kAccent,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Post Need', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-      ),
-      body: RefreshIndicator(
-        color: kPrimary,
-        onRefresh: () async {
-          ref.invalidate(myNgoNeedsProvider);
-          ref.invalidate(myNgoPendingPledgesProvider);
-          ref.invalidate(profileProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: SafeArea(
+        child: RefreshIndicator(
+          color: kPrimary,
+          onRefresh: () async {
+            ref.invalidate(myNgoProvider);
+            ref.invalidate(myNgoNeedsProvider);
+            ref.invalidate(myNgoPendingPledgesProvider);
+            ref.invalidate(profileProvider);
+          },
+          child: CustomScrollView(
+            slivers: [
+              // ── Header ──────────────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Container(
+                  color: kSurface,
+                  padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ngoAsync.when(
+                                  data: (ngo) => Text(
+                                    ngo?.name ?? 'Organisation',
+                                    style: GoogleFonts.sora(
+                                      fontSize: 13, fontWeight: FontWeight.w900, color: kForeground,
+                                    ),
+                                  ),
+                                  loading: () => Container(height: 16, width: 140, color: kMuted),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                ),
+                                const SizedBox(height: 3),
+                                profileAsync.when(
+                                  data: (p) => Text(
+                                    '${p?.fullName ?? 'Admin'} · NGO Admin',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: kMutedFg),
+                                  ),
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => context.go('/ngo/needs/new'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: kPrimary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                                const SizedBox(width: 5),
+                                Text('Post Need', style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700,
+                                )),
+                              ]),
+                            ),
+                          ),
+                        ],
+                      ),
 
-            // Greeting
-            profileAsync.when(
-              data: (p) {
-                final first = p?.fullName.split(' ').first ?? 'Admin';
-                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Welcome back, $first',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: kForeground)),
-                  const SizedBox(height: 2),
-                  const Text("Here's your organization overview",
-                    style: TextStyle(fontSize: 13, color: kMutedFg)),
-                ]);
-              },
-              loading: () => const SizedBox(height: 32),
-              error: (_, __) => const SizedBox(height: 32),
-            ),
-            const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-            // Metric cards
-            needsAsync.when(
-              data: (needs) => pledgesAsync.when(
-                data: (pledges) {
-                  final totalPledges = needs.fold<int>(0, (sum, n) => sum + n.quantityPledged);
-                  final itemsReceived = pledges
-                      .where((p) => p.status == 'confirmed')
-                      .fold<int>(0, (sum, p) => sum + p.quantity);
-                  return Row(children: [
-                    Expanded(child: _MetricCard(
-                      icon: Icons.volunteer_activism_rounded,
-                      label: 'Total Pledges',
-                      value: totalPledges.toString(),
-                      growth: null,
-                      color: kPrimary,
-                    )),
-                    const SizedBox(width: 12),
-                    Expanded(child: _MetricCard(
-                      icon: Icons.inventory_2_rounded,
-                      label: 'Items Received',
-                      value: itemsReceived.toString(),
-                      growth: null,
-                      color: kMatched,
-                    )),
-                  ]);
-                },
-                loading: () => const SizedBox(height: 90),
-                error: (_, __) => const SizedBox(height: 90),
+                      // Stats row
+                      needsAsync.when(
+                        data: (needs) => pledgesAsync.when(
+                          data: (pledges) => _StatsRow(needs: needs, pledges: pledges),
+                          loading: () => const SizedBox(height: 64),
+                          error: (_, _) => const SizedBox(height: 64),
+                        ),
+                        loading: () => const SizedBox(height: 64),
+                        error: (_, _) => const SizedBox(height: 64),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              loading: () => const SizedBox(height: 90),
-              error: (_, __) => const SizedBox(height: 90),
-            ),
-            const SizedBox(height: 24),
 
-            // Active Requests
-            needsAsync.when(
-              data: (needs) {
-                final active = needs.where((n) => n.status == 'open' || n.status == 'urgent').take(3).toList();
-                if (active.isEmpty) return const SizedBox.shrink();
-                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    const Text('Active Requests',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: kForeground)),
-                    TextButton(
-                      onPressed: () => context.go('/ngo/pledges'),
-                      child: const Text('View All'),
+              // ── Needs Confirming ─────────────────────────────────────────
+              pledgesAsync.when(
+                data: (pledges) {
+                  if (pledges.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            Text('Needs Confirming', style: GoogleFonts.sora(
+                              fontSize: 12, fontWeight: FontWeight.w800, color: kForeground,
+                            )),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: kUrgent,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text('${pledges.length}', style: const TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white,
+                              )),
+                            ),
+                          ]),
+                          const SizedBox(height: 12),
+                          ...pledges.map((p) => _IncomingPledgeCard(
+                            pledge: p,
+                            onRefresh: () {
+                              ref.invalidate(myNgoPendingPledgesProvider);
+                              ref.invalidate(myNgoNeedsProvider);
+                            },
+                          )),
+                        ],
+                      ),
                     ),
-                  ]),
-                  const SizedBox(height: 8),
-                  ...active.map((n) => _NeedProgressCard(need: n)),
-                  const SizedBox(height: 8),
-                ]);
-              },
-              loading: () => const Center(child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)),
-              error: (e, _) => Text('Error: $e', style: const TextStyle(color: kUrgent)),
-            ),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              ),
 
-            // Incoming Pledges
-            pledgesAsync.when(
-              data: (pledges) {
-                if (pledges.isEmpty) return const SizedBox.shrink();
-                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    const Text('Incoming Pledges',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: kForeground)),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: kAccent, borderRadius: BorderRadius.circular(20)),
-                      child: Text('${pledges.length} New',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+              // ── Active Needs ─────────────────────────────────────────────
+              needsAsync.when(
+                data: (needs) {
+                  final active = needs.where((n) => n.status == 'open').toList();
+                  if (active.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Active Needs', style: GoogleFonts.sora(
+                                fontSize: 12, fontWeight: FontWeight.w800, color: kForeground,
+                              )),
+                              TextButton(
+                                onPressed: () => context.go('/ngo/pledges'),
+                                child: Text('View All', style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12, color: kPrimary, fontWeight: FontWeight.w600,
+                                )),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ...active.take(5).map((n) => _ActiveNeedTile(need: n)),
+                        ],
+                      ),
                     ),
-                  ]),
-                  const SizedBox(height: 8),
-                  ...pledges.take(3).map((p) => _IncomingPledgeCard(
-                    pledge: p,
-                    onRefresh: () {
-                      ref.invalidate(myNgoPendingPledgesProvider);
-                      ref.invalidate(myNgoNeedsProvider);
-                    },
+                  );
+                },
+                loading: () => SliverToBoxAdapter(
+                  child: const Center(child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
                   )),
-                ]);
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
+                ),
+                error: (e, _) => SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('Error: $e', style: const TextStyle(color: kUrgent, fontSize: 13)),
+                  ),
+                ),
+              ),
 
-            const SizedBox(height: 100),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 40)),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _MetricCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String? growth;
+// ── Stats row ────────────────────────────────────────────────────────────────
+
+class _StatsRow extends StatelessWidget {
+  final List<DonationNeed> needs;
+  final List<Pledge> pledges;
+  const _StatsRow({required this.needs, required this.pledges});
+
+  @override
+  Widget build(BuildContext context) {
+    final activeNeeds = needs.where((n) => n.status == 'open').length;
+    final toConfirm = pledges.length;
+    final totalPledged = needs.fold<int>(0, (s, n) => s + n.quantityPledged);
+    final totalNeeded = needs.fold<int>(0, (s, n) => s + n.quantityNeeded);
+    final fulfilledPct = totalNeeded > 0 ? ((totalPledged / totalNeeded) * 100).round() : 0;
+
+    return Row(children: [
+      _StatTile(value: '$activeNeeds', label: 'Active Needs', color: kPrimary),
+      const SizedBox(width: 8),
+      _StatTile(
+        value: '$toConfirm', label: 'To Confirm',
+        color: toConfirm > 0 ? kUrgent : kMutedFg,
+      ),
+      const SizedBox(width: 8),
+      _StatTile(value: '$fulfilledPct%', label: 'Fulfilled', color: kMatched),
+    ]);
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final String value, label;
   final Color color;
-  const _MetricCard({required this.icon, required this.label, required this.value, required this.color, this.growth});
+  const _StatTile({required this.value, required this.label, required this.color});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: kSurface, borderRadius: BorderRadius.circular(16), border: Border.all(color: kBorder),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: color.withAlpha(25), shape: BoxShape.circle),
-        child: Icon(icon, color: color, size: 20),
+  Widget build(BuildContext context) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDFF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorder),
       ),
-      const SizedBox(height: 12),
-      Text(value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: color)),
-      const SizedBox(height: 2),
-      Row(children: [
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: kMutedFg))),
-        if (growth != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(color: kMatched.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-            child: Text(growth!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: kMatched)),
-          ),
-      ]),
-    ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value, style: GoogleFonts.sora(
+            fontSize: 20, fontWeight: FontWeight.w900, color: color,
+          )),
+          const SizedBox(height: 2),
+          Text(label, style: GoogleFonts.plusJakartaSans(
+            fontSize: 9, color: kMutedFg,
+          )),
+        ],
+      ),
+    ),
   );
 }
 
-class _NeedProgressCard extends StatelessWidget {
-  final DonationNeed need;
-  const _NeedProgressCard({required this.need});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: kSurface, borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: need.isUrgent ? kUrgent.withAlpha(60) : kBorder),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: need.isUrgent ? kUrgent.withAlpha(20) : kPrimary.withAlpha(15),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            need.isUrgent ? 'Urgent' : 'In Progress',
-            style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w700,
-              color: need.isUrgent ? kUrgent : kPrimary,
-            ),
-          ),
-        ),
-        const Spacer(),
-        Text('${(need.progress * 100).round()}%',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kPrimary)),
-      ]),
-      const SizedBox(height: 8),
-      Text(need.itemName,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: kForeground)),
-      const SizedBox(height: 2),
-      Text('Goal: ${need.quantityNeeded} units · Deadline ${need.deadline}',
-        style: const TextStyle(fontSize: 12, color: kMutedFg)),
-      const SizedBox(height: 8),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: LinearProgressIndicator(
-          value: need.progress,
-          backgroundColor: kMuted,
-          valueColor: AlwaysStoppedAnimation(need.isUrgent ? kUrgent : kPrimary),
-          minHeight: 7,
-        ),
-      ),
-    ]),
-  );
-}
+// ── Incoming pledge card (Needs Confirming) ──────────────────────────────────
 
 class _IncomingPledgeCard extends ConsumerStatefulWidget {
   final Pledge pledge;
@@ -261,9 +282,30 @@ class _IncomingPledgeCardState extends ConsumerState<_IncomingPledgeCard> {
       widget.onRefresh();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to confirm: $e'), backgroundColor: kUrgent),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to confirm: $e'),
+          backgroundColor: kUrgent,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _acting = false);
+    }
+  }
+
+  Future<void> _reject() async {
+    setState(() => _acting = true);
+    try {
+      await ref.read(supabaseProvider)
+          .from('pledges')
+          .update({'status': 'rejected'})
+          .eq('id', widget.pledge.id);
+      widget.onRefresh();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to reject: $e'),
+          backgroundColor: kUrgent,
+        ));
       }
     } finally {
       if (mounted) setState(() => _acting = false);
@@ -274,53 +316,171 @@ class _IncomingPledgeCardState extends ConsumerState<_IncomingPledgeCard> {
   Widget build(BuildContext context) {
     final donor = widget.pledge.donor;
     final need = widget.pledge.donationNeed;
+    final initials = donor?.fullName.isNotEmpty == true
+        ? donor!.fullName[0].toUpperCase()
+        : '?';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: kSurface, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFDE68A)),
+        color: kSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kBorder),
+        boxShadow: [BoxShadow(
+          color: const Color(0xFF0891B2).withAlpha(14),
+          blurRadius: 8, offset: const Offset(0, 2),
+        )],
       ),
-      child: Row(children: [
-        Container(
-          width: 42, height: 42,
-          decoration: BoxDecoration(color: kPrimary.withAlpha(20), shape: BoxShape.circle),
-          child: Center(child: Text(
-            donor?.fullName.isNotEmpty == true ? donor!.fullName[0].toUpperCase() : '?',
-            style: const TextStyle(fontWeight: FontWeight.w800, color: kPrimary, fontSize: 16),
-          )),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(donor?.fullName ?? 'Donor',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: kForeground)),
-          Text('${widget.pledge.quantity} units · ${need?.itemName ?? ''}',
-            style: const TextStyle(fontSize: 12, color: kMutedFg)),
-          const SizedBox(height: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(children: [
-            const Icon(Icons.calendar_today_outlined, size: 11, color: kMutedFg),
-            const SizedBox(width: 3),
-            Text('Delivery by ${widget.pledge.deliveryDate}',
-              style: const TextStyle(fontSize: 11, color: kMutedFg)),
-          ]),
-        ])),
-        const SizedBox(width: 8),
-        _acting
-            ? const SizedBox(width: 20, height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))
-            : ElevatedButton(
-                onPressed: _confirm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kMatched,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            Container(
+              width: 38, height: 38,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0891B2), Color(0xFF0E7490)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight,
                 ),
-                child: const Text('Confirm',
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                shape: BoxShape.circle,
               ),
-      ]),
+              child: Center(child: Text(initials, style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15,
+              ))),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(donor?.fullName ?? 'Donor', style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700, fontSize: 13, color: kForeground,
+              )),
+              Text(
+                '${widget.pledge.quantity} units · By ${widget.pledge.deliveryDate}',
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: kMutedFg),
+              ),
+            ])),
+          ]),
+          if (need != null) ...[
+            const SizedBox(height: 8),
+            Text(need.itemName, style: GoogleFonts.plusJakartaSans(
+              fontSize: 12, fontWeight: FontWeight.w600, color: kPrimary,
+            )),
+          ],
+          const SizedBox(height: 12),
+          _acting
+              ? const Center(child: SizedBox(
+                  width: 20, height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary),
+                ))
+              : Row(children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _reject,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: kUrgent),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(child: Text('Reject', style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, fontWeight: FontWeight.w700, color: kUrgent,
+                        ))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: GestureDetector(
+                      onTap: _confirm,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        decoration: BoxDecoration(
+                          color: kPrimary,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(child: Text('Confirm Pledge', style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white,
+                        ))),
+                      ),
+                    ),
+                  ),
+                ]),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Active need tile (compact with left stripe) ───────────────────────────────
+
+class _ActiveNeedTile extends StatelessWidget {
+  final DonationNeed need;
+  const _ActiveNeedTile({required this.need});
+
+  static const _categoryColors = {
+    'food':     Color(0xFFEA580C),
+    'clothing': Color(0xFF7C3AED),
+    'medicine': Color(0xFF16A34A),
+    'supplies': Color(0xFF0891B2),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final catColor = _categoryColors[need.category] ?? kPrimary;
+    final pct = (need.progress * 100).round();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorder),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: catColor,
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(
+                        child: Text(need.itemName, style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11, fontWeight: FontWeight.w700, color: kForeground,
+                        ), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                      Text('$pct%', style: GoogleFonts.jetBrainsMono(
+                        fontSize: 10, fontWeight: FontWeight.w700, color: catColor,
+                      )),
+                    ]),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: need.progress,
+                        backgroundColor: kMuted,
+                        valueColor: AlwaysStoppedAnimation(catColor),
+                        minHeight: 4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

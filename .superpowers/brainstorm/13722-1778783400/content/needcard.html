@@ -1,0 +1,310 @@
+<h2>How should the NeedCard look?</h2>
+<p class="subtitle">This is what donors scroll through every day. The most important surface in the app.</p>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Sora:wght@700;800;900&display=swap');
+
+* { box-sizing: border-box; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 24px; }
+
+.col { display: flex; flex-direction: column; gap: 0; }
+.col-label { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 800; color: white; margin-bottom: 6px; }
+.col-sub { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 16px; line-height: 1.5; }
+
+/* ===================== OPTION A: BENTO / EDITORIAL ===================== */
+.a-phone { background: #F0FDFF; border-radius: 28px; overflow: hidden; padding: 0; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+.a-appbar { background: white; padding: 12px 16px 8px; display: flex; justify-content: space-between; align-items: center; }
+.a-appbar-left { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 900; color: #164E63; }
+.a-appbar-right { width: 28px; height: 28px; border-radius: 50%; background: #0891B2; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 800; }
+.a-search { margin: 8px 12px; background: white; border: 1.5px solid #E8EDF2; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; }
+.a-search-icon { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #94A3B8; }
+.a-search-text { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; color: #94A3B8; }
+
+/* Hero card — urgent, spans full width */
+.a-hero-card { margin: 6px 12px 0; border-radius: 18px; overflow: hidden; position: relative; }
+.a-hero-bg { background: linear-gradient(140deg, #0C4A6E 0%, #0891B2 60%, #06B6D4 100%); padding: 16px 14px 14px; position: relative; }
+.a-hero-bg::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.025) 6px, rgba(255,255,255,0.025) 7px); }
+.a-urgent-pill { background: #EF4444; color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; font-weight: 800; padding: 3px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 3px; position: relative; z-index: 1; }
+.a-hero-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 900; color: white; margin-top: 8px; line-height: 1.2; position: relative; z-index: 1; }
+.a-hero-ngo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; color: rgba(255,255,255,0.7); margin-top: 3px; position: relative; z-index: 1; }
+.a-hero-stats { display: flex; align-items: center; gap: 10px; margin-top: 12px; position: relative; z-index: 1; }
+.a-prog-wrap { flex: 1; }
+.a-prog-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.a-prog-pct { font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 900; color: white; }
+.a-prog-remain { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: rgba(255,255,255,0.65); }
+.a-prog-track { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
+.a-prog-fill { height: 100%; background: white; border-radius: 3px; }
+.a-pledge-btn { background: white; color: #0891B2; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; font-weight: 800; padding: 7px 12px; border-radius: 10px; white-space: nowrap; }
+
+/* Secondary card */
+.a-card2 { margin: 6px 12px 0; background: white; border-radius: 14px; border: 1.5px solid #E8EDF2; overflow: hidden; display: flex; }
+.a-card2-color { width: 5px; background: #16A34A; flex-shrink: 0; }
+.a-card2-body { padding: 10px 10px; flex: 1; }
+.a-card2-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 800; color: #164E63; }
+.a-card2-ngo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: #64748B; margin-top: 1px; }
+.a-card2-prog { height: 4px; background: #F0FDF4; border-radius: 2px; margin-top: 7px; overflow: hidden; }
+.a-card2-fill { height: 100%; background: #16A34A; border-radius: 2px; }
+.a-card2-meta { display: flex; justify-content: space-between; margin-top: 4px; }
+.a-card2-stat { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; color: #94A3B8; }
+
+.a-tabbar { background: white; border-top: 1px solid #F1F5F9; padding: 8px 16px 6px; display: flex; justify-content: space-around; margin-top: 8px; }
+.a-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.a-tab-icon { width: 22px; height: 4px; border-radius: 2px; }
+.a-tab-lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; font-weight: 700; }
+
+/* ===================== OPTION B: IMMERSIVE GRADIENT TILES ===================== */
+.b-phone { background: #E8F4F8; border-radius: 28px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+.b-appbar { background: #164E63; padding: 12px 16px 10px; display: flex; justify-content: space-between; align-items: center; }
+.b-appbar-title { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 900; color: white; letter-spacing: -0.3px; }
+.b-appbar-right { width: 28px; height: 28px; border-radius: 8px; background: #0891B2; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 800; }
+.b-cats { display: flex; gap: 5px; background: #164E63; padding: 0 12px 10px; overflow: hidden; }
+.b-cat { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.b-cat.active { background: white; color: #0891B2; }
+.b-cat.inactive { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+.b-feed { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.b-card { border-radius: 18px; overflow: hidden; position: relative; }
+.b-card-inner { padding: 14px; }
+.b-card-1 { background: linear-gradient(135deg, #0C4A6E, #0E7490); }
+.b-card-2 { background: linear-gradient(135deg, #166534, #15803D); }
+.b-card-3 { background: linear-gradient(135deg, #7C2D12, #C2440F); margin-bottom: 6px; }
+.b-cat-tag { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+.b-title { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 2px; }
+.b-ngo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: rgba(255,255,255,0.65); margin-bottom: 10px; }
+.b-bottom { display: flex; align-items: center; justify-content: space-between; }
+.b-prog-row { flex: 1; }
+.b-prog-nums { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.b-prog-pct { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 900; color: white; }
+.b-prog-rem { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: rgba(255,255,255,0.6); align-self: flex-end; padding-bottom: 1px; }
+.b-track { height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
+.b-fill { height: 100%; background: white; border-radius: 3px; }
+.b-pill { background: rgba(255,255,255,0.15); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; font-weight: 700; padding: 5px 9px; border-radius: 20px; margin-left: 10px; white-space: nowrap; backdrop-filter: blur(4px); }
+.b-urgent { position: absolute; top: 10px; right: 10px; background: #EF4444; color: white; font-size: 7px; font-weight: 800; padding: 2px 7px; border-radius: 20px; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+.b-tabbar { background: #164E63; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 16px 6px; display: flex; justify-content: space-around; }
+.b-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.b-tab-icon { width: 22px; height: 4px; border-radius: 2px; }
+.b-tab-lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; font-weight: 700; }
+
+/* ===================== OPTION C: DEPTH + SHADOW CARDS ===================== */
+.c-phone { background: #F5FAFE; border-radius: 28px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+.c-header { background: white; padding: 12px 16px 0; }
+.c-greeting { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 900; color: #164E63; }
+.c-subgreet { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; color: #64748B; margin-top: 1px; margin-bottom: 10px; }
+.c-search { background: #F1F5F9; border-radius: 10px; padding: 7px 10px; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.c-search-inner { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; color: #94A3B8; }
+.c-chips { display: flex; gap: 5px; padding: 0 0 10px; overflow: hidden; }
+.c-chip { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.c-chip.on { background: #0891B2; color: white; }
+.c-chip.off { background: #F1F5F9; color: #64748B; }
+
+.c-feed { padding: 8px 12px; display: flex; flex-direction: column; gap: 10px; }
+
+.c-card { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 20px rgba(8,145,178,0.1), 0 1px 4px rgba(0,0,0,0.06); }
+.c-card-stripe { height: 5px; }
+.c-card-body { padding: 12px 14px 14px; }
+.c-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.c-card-title { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 900; color: #164E63; line-height: 1.2; }
+.c-card-badge { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; font-weight: 800; padding: 2px 7px; border-radius: 20px; white-space: nowrap; align-self: flex-start; }
+.c-badge-urgent { background: #FEF2F2; color: #EF4444; }
+.c-badge-open { background: #F0FDF4; color: #16A34A; }
+.c-card-ngo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: #94A3B8; margin-bottom: 10px; display: flex; align-items: center; gap: 4px; }
+.c-ngo-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.c-prog-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.c-prog-pct { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 900; }
+.c-prog-info { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: #94A3B8; }
+.c-track { height: 8px; border-radius: 4px; background: #F1F5F9; overflow: hidden; }
+.c-fill { height: 100%; border-radius: 4px; }
+.c-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.c-deadline { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; color: #94A3B8; }
+.c-pledge { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; font-weight: 800; color: #0891B2; }
+
+.c-tabbar { background: white; border-top: 1.5px solid #F1F5F9; padding: 8px 16px 6px; display: flex; justify-content: space-around; }
+.c-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.c-tab-icon { width: 22px; height: 4px; border-radius: 2px; }
+.c-tab-lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 7px; font-weight: 700; }
+</style>
+
+<div class="grid">
+
+  <!-- A: Bento / Editorial -->
+  <div class="col" data-choice="A" onclick="toggleSelect(this)" style="cursor:pointer;border-radius:16px;border:2px solid transparent;padding:10px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!this.classList.contains('selected'))this.style.borderColor='transparent'">
+    <div class="col-label" style="color:#60A5FA">A — Bento Editorial</div>
+    <div class="col-sub">Hero card for the most urgent need, smaller cards below. Hierarchy drives the eye straight to what matters most.</div>
+    <div class="a-phone">
+      <div class="a-appbar">
+        <div class="a-appbar-left">Hello, Caleb</div>
+        <div class="a-appbar-right">C</div>
+      </div>
+      <div class="a-search">
+        <div class="a-search-icon"></div>
+        <div class="a-search-text">Search by item or NGO…</div>
+      </div>
+      <div class="a-hero-card">
+        <div class="a-hero-bg">
+          <div class="a-urgent-pill">⚡ URGENT</div>
+          <div class="a-hero-title">School<br>Notebooks</div>
+          <div class="a-hero-ngo">Kampala Children Trust</div>
+          <div class="a-hero-stats">
+            <div class="a-prog-wrap">
+              <div class="a-prog-label">
+                <span class="a-prog-pct">68%</span>
+                <span class="a-prog-remain">32 remaining</span>
+              </div>
+              <div class="a-prog-track"><div class="a-prog-fill" style="width:68%"></div></div>
+            </div>
+            <div class="a-pledge-btn">Pledge →</div>
+          </div>
+        </div>
+      </div>
+      <div class="a-card2">
+        <div class="a-card2-color" style="background:#16A34A"></div>
+        <div class="a-card2-body">
+          <div class="a-card2-title">Blankets for Families</div>
+          <div class="a-card2-ngo">Hope Uganda · Clothing</div>
+          <div class="a-card2-prog"><div class="a-card2-fill" style="width:45%;background:#16A34A"></div></div>
+          <div class="a-card2-meta"><span class="a-card2-stat">45% · 55 remaining</span><span class="a-card2-stat">Due Apr 30</span></div>
+        </div>
+      </div>
+      <div class="a-card2" style="margin-top:5px">
+        <div class="a-card2-color" style="background:#EA580C"></div>
+        <div class="a-card2-body">
+          <div class="a-card2-title">Medical Supplies Kit</div>
+          <div class="a-card2-ngo">Heal Africa · Medicine</div>
+          <div class="a-card2-prog"><div class="a-card2-fill" style="width:82%;background:#EA580C"></div></div>
+          <div class="a-card2-meta"><span class="a-card2-stat">82% · 12 remaining</span><span class="a-card2-stat">Due May 15</span></div>
+        </div>
+      </div>
+      <div class="a-tabbar">
+        <div class="a-tab"><div class="a-tab-icon" style="background:#0891B2"></div><div class="a-tab-lbl" style="color:#0891B2">Discover</div></div>
+        <div class="a-tab"><div class="a-tab-icon" style="background:#E2E8F0"></div><div class="a-tab-lbl" style="color:#94A3B8">Pledges</div></div>
+        <div class="a-tab"><div class="a-tab-icon" style="background:#E2E8F0"></div><div class="a-tab-lbl" style="color:#94A3B8">Profile</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Immersive Gradient Tiles -->
+  <div class="col" data-choice="B" onclick="toggleSelect(this)" style="cursor:pointer;border-radius:16px;border:2px solid transparent;padding:10px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!this.classList.contains('selected'))this.style.borderColor='transparent'">
+    <div class="col-label" style="color:#7BC5D4">B — Immersive Tiles</div>
+    <div class="col-sub">Full-bleed gradient cards per category. Bold and visual. Each card owns its color — food, medicine, clothing each look distinct.</div>
+    <div class="b-phone">
+      <div class="b-appbar">
+        <div class="b-appbar-title">Discover Needs</div>
+        <div class="b-appbar-right">C</div>
+      </div>
+      <div class="b-cats">
+        <div class="b-cat active">All</div>
+        <div class="b-cat inactive">Food</div>
+        <div class="b-cat inactive">Clothing</div>
+        <div class="b-cat inactive">Medicine</div>
+      </div>
+      <div class="b-feed">
+        <div class="b-card">
+          <div class="b-urgent">⚡ URGENT</div>
+          <div class="b-card-inner b-card-1">
+            <div class="b-cat-tag">EDUCATION</div>
+            <div class="b-title">School Notebooks</div>
+            <div class="b-ngo">Kampala Children Trust</div>
+            <div class="b-bottom">
+              <div class="b-prog-row">
+                <div class="b-prog-nums">
+                  <span class="b-prog-pct">68%</span>
+                  <span class="b-prog-rem">32 left</span>
+                </div>
+                <div class="b-track"><div class="b-fill" style="width:68%"></div></div>
+              </div>
+              <div class="b-pill">Pledge →</div>
+            </div>
+          </div>
+        </div>
+        <div class="b-card">
+          <div class="b-card-inner b-card-2">
+            <div class="b-cat-tag">CLOTHING</div>
+            <div class="b-title">Blankets for Families</div>
+            <div class="b-ngo">Hope Uganda</div>
+            <div class="b-bottom">
+              <div class="b-prog-row">
+                <div class="b-prog-nums"><span class="b-prog-pct" style="font-size:12px">45%</span><span class="b-prog-rem">55 left</span></div>
+                <div class="b-track"><div class="b-fill" style="width:45%"></div></div>
+              </div>
+              <div class="b-pill">Pledge →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="b-tabbar">
+        <div class="b-tab"><div class="b-tab-icon" style="background:#0891B2"></div><div class="b-tab-lbl" style="color:#7BC5D4">Discover</div></div>
+        <div class="b-tab"><div class="b-tab-icon" style="background:rgba(255,255,255,0.2)"></div><div class="b-tab-lbl" style="color:rgba(255,255,255,0.4)">Pledges</div></div>
+        <div class="b-tab"><div class="b-tab-icon" style="background:rgba(255,255,255,0.2)"></div><div class="b-tab-lbl" style="color:rgba(255,255,255,0.4)">Profile</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Depth + Shadow Cards -->
+  <div class="col" data-choice="C" onclick="toggleSelect(this)" style="cursor:pointer;border-radius:16px;border:2px solid transparent;padding:10px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!this.classList.contains('selected'))this.style.borderColor='transparent'">
+    <div class="col-label" style="color:#93C5FD">C — Clean Depth</div>
+    <div class="col-sub">White cards with sharp elevation shadows. The large progress percentage is the focal point. Polished, readable, fast to scan.</div>
+    <div class="c-phone">
+      <div class="c-header">
+        <div class="c-greeting">Hello, Caleb</div>
+        <div class="c-subgreet">3 urgent needs in your area</div>
+        <div class="c-search"><div class="c-search-inner">Search by item or NGO…</div></div>
+        <div class="c-chips">
+          <div class="c-chip on">All</div>
+          <div class="c-chip off">Food</div>
+          <div class="c-chip off">Clothing</div>
+          <div class="c-chip off">Medicine</div>
+        </div>
+      </div>
+      <div class="c-feed">
+        <div class="c-card">
+          <div class="c-card-stripe" style="background:linear-gradient(90deg,#EF4444,#F97316)"></div>
+          <div class="c-card-body">
+            <div class="c-card-top">
+              <div class="c-card-title">School Notebooks</div>
+              <div class="c-card-badge c-badge-urgent">⚡ Urgent</div>
+            </div>
+            <div class="c-card-ngo"><div class="c-ngo-dot" style="background:#0891B2"></div>Kampala Children Trust</div>
+            <div class="c-prog-header">
+              <span class="c-prog-pct" style="color:#0891B2">68%</span>
+              <span class="c-prog-info">32 of 100 still needed</span>
+            </div>
+            <div class="c-track"><div class="c-fill" style="width:68%;background:linear-gradient(90deg,#0891B2,#06B6D4)"></div></div>
+            <div class="c-card-footer">
+              <span class="c-deadline">Due May 30</span>
+              <span class="c-pledge">Pledge now →</span>
+            </div>
+          </div>
+        </div>
+        <div class="c-card">
+          <div class="c-card-stripe" style="background:#16A34A"></div>
+          <div class="c-card-body">
+            <div class="c-card-top">
+              <div class="c-card-title">Blankets for Families</div>
+              <div class="c-card-badge c-badge-open">Open</div>
+            </div>
+            <div class="c-card-ngo"><div class="c-ngo-dot" style="background:#16A34A"></div>Hope Uganda</div>
+            <div class="c-prog-header">
+              <span class="c-prog-pct" style="color:#16A34A">45%</span>
+              <span class="c-prog-info">55 of 100 still needed</span>
+            </div>
+            <div class="c-track"><div class="c-fill" style="width:45%;background:#16A34A"></div></div>
+            <div class="c-card-footer">
+              <span class="c-deadline">Due Apr 30</span>
+              <span class="c-pledge">Pledge now →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="c-tabbar">
+        <div class="c-tab"><div class="c-tab-icon" style="background:#0891B2"></div><div class="c-tab-lbl" style="color:#0891B2">Discover</div></div>
+        <div class="c-tab"><div class="c-tab-icon" style="background:#E2E8F0"></div><div class="c-tab-lbl" style="color:#94A3B8">Pledges</div></div>
+        <div class="c-tab"><div class="c-tab-icon" style="background:#E2E8F0"></div><div class="c-tab-lbl" style="color:#94A3B8">Profile</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:20px;text-align:center">Note: all three keep your existing cyan palette and Sora + Plus Jakarta Sans fonts. The difference is card structure and hierarchy.</p>

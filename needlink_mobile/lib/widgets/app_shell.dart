@@ -8,7 +8,6 @@ class DonorShell extends StatelessWidget {
   static const _tabs = [
     _NavItem(Icons.explore_outlined, Icons.explore_rounded, 'Discover', '/donor'),
     _NavItem(Icons.volunteer_activism_outlined, Icons.volunteer_activism, 'Donations', '/donor/pledges'),
-    _NavItem(Icons.local_shipping_outlined, Icons.local_shipping_rounded, 'Tracking', '/donor/tracking'),
     _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile', '/donor/profile'),
   ];
 
