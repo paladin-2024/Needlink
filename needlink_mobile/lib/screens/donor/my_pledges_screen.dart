@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
@@ -312,8 +313,12 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.volunteer_activism_outlined, size: 52, color: kMuted),
-      const SizedBox(height: 14),
+      Lottie.asset(
+        'assets/lottie/empty_state.json',
+        width: 160, height: 160,
+        repeat: true,
+      ),
+      const SizedBox(height: 4),
       Text(
         filter == 'All' ? 'No donations yet' : 'No $filter donations',
         style: GoogleFonts.sora(fontSize: 15, fontWeight: FontWeight.w700, color: kForeground),

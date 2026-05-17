@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../models.dart';
@@ -96,6 +97,16 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                   ),
                 ),
               ]),
+              if (!isConfirmed && !isPending) ...[
+                const SizedBox(height: 12),
+                Center(
+                  child: Lottie.asset(
+                    'assets/lottie/delivery_walk.json',
+                    width: 180, height: 110,
+                    repeat: true,
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               _InfoRow(Icons.qr_code_rounded, 'Pledge ID', 'NL-${widget.pledgeId.substring(0, 8).toUpperCase()}'),
               const SizedBox(height: 8),

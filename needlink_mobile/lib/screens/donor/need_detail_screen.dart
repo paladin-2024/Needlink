@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -309,26 +310,34 @@ class _NeedDetailScreenState extends State<NeedDetailScreen> {
             // Success banner
             if (_success)
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFBBF7D0)),
                 ),
-                child: Row(children: [
-                  const Icon(Icons.check_circle_rounded, color: kMatched, size: 26),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Pledge submitted!', style: GoogleFonts.sora(fontWeight: FontWeight.w700, color: kMatched)),
-                    const SizedBox(height: 2),
-                    Text('The NGO will review your pledge.', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg)),
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: () => context.go('/donor/pledges'),
-                      child: Text('View my pledges →', style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600,
-                      )),
-                    ),
-                  ])),
+                child: Column(children: [
+                  Lottie.asset(
+                    'assets/lottie/pledge_success.json',
+                    width: 200, height: 160,
+                    repeat: false,
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Pledge submitted!', style: GoogleFonts.sora(
+                    fontSize: 17, fontWeight: FontWeight.w800, color: kMatched,
+                  )),
+                  const SizedBox(height: 4),
+                  Text(
+                    'The NGO will review your pledge.',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kMutedFg),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () => context.go('/donor/pledges'),
+                    child: Text('View my pledges →', style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13, color: kPrimary, fontWeight: FontWeight.w700,
+                    )),
+                  ),
                 ]),
               ),
 

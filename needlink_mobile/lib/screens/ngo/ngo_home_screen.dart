@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
@@ -65,22 +66,32 @@ class NgoHomeScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => context.go('/ngo/needs/new'),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                              decoration: BoxDecoration(
-                                color: kPrimary,
-                                borderRadius: BorderRadius.circular(20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () => context.go('/ngo/needs/new'),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                                  decoration: BoxDecoration(
+                                    color: kPrimary,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                                    const SizedBox(width: 5),
+                                    Text('Post Need', style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700,
+                                    )),
+                                  ]),
+                                ),
                               ),
-                              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                const Icon(Icons.add_rounded, size: 15, color: Colors.white),
-                                const SizedBox(width: 5),
-                                Text('Post Need', style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700,
-                                )),
-                              ]),
-                            ),
+                              Lottie.asset(
+                                'assets/lottie/ngo_welcome.json',
+                                width: 72, height: 60,
+                                repeat: true,
+                              ),
+                            ],
                           ),
                         ],
                       ),

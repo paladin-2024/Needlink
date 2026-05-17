@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
@@ -139,10 +140,10 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
               return true;
             }).toList();
 
+            final isFiltered = _search.isNotEmpty || _category.isNotEmpty || _urgentOnly;
+
             if (filtered.isEmpty) {
-              return _EmptyState(
-                isFiltered: _search.isNotEmpty || _category.isNotEmpty || _urgentOnly,
-              );
+              return _EmptyState(isFiltered: isFiltered);
             }
 
             return RefreshIndicator(
@@ -150,10 +151,12 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
               onRefresh: () => ref.refresh(donationNeedsProvider.future),
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                itemCount: filtered.length,
+                itemCount: filtered.length + (isFiltered ? 0 : 1),
                 itemBuilder: (_, i) {
-                  final need = filtered[i];
-                  if (i == 0 && need.isUrgent) {
+                  if (!isFiltered && i == 0) return const _WelcomeBanner();
+                  final ni = isFiltered ? i : i - 1;
+                  final need = filtered[ni];
+                  if (ni == 0 && need.isUrgent) {
                     return _HeroCard(
                       need: need,
                       onTap: () => context.go('/donor/need/${need.id}'),
@@ -441,6 +444,56 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
+class _WelcomeBanner extends StatelessWidget {
+  const _WelcomeBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDFF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFBAE6FD)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Together we can make a difference',
+                    style: GoogleFonts.sora(
+                      fontSize: 13, fontWeight: FontWeight.w700, color: kForeground,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Browse needs below and pledge what you can',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: kMutedFg),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(14)),
+            child: Lottie.asset(
+              'assets/lottie/community_wave.json',
+              width: 90, height: 80,
+              repeat: true,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   final bool isFiltered;
   const _EmptyState({required this.isFiltered});
@@ -448,11 +501,12 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(
-        isFiltered ? Icons.search_off_rounded : Icons.inventory_2_outlined,
-        size: 52, color: kMuted,
+      Lottie.asset(
+        'assets/lottie/empty_state.json',
+        width: 160, height: 160,
+        repeat: true,
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 4),
       Text(
         isFiltered ? 'No needs match your filter' : 'No donation needs yet',
         style: GoogleFonts.sora(fontSize: 15, fontWeight: FontWeight.w700, color: kForeground),
