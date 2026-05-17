@@ -8,7 +8,8 @@ import '../../providers.dart';
 import '../../theme.dart';
 
 class CreateNeedScreen extends ConsumerStatefulWidget {
-  const CreateNeedScreen({super.key});
+  final String? templateId;
+  const CreateNeedScreen({super.key, this.templateId});
   @override
   ConsumerState<CreateNeedScreen> createState() => _CreateNeedScreenState();
 }
@@ -27,6 +28,27 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
   bool _loading = false;
   bool _published = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.templateId != null) _loadTemplate();
+  }
+
+  Future<void> _loadTemplate() async {
+    try {
+      final data = await Supabase.instance.client
+          .from('donation_needs').select().eq('id', widget.templateId!).single();
+      if (!mounted) return;
+      setState(() {
+        _itemCtrl.text = data['item_name'] as String? ?? '';
+        _descCtrl.text = data['description'] as String? ?? '';
+        _category = data['category'] as String? ?? 'food';
+        _urgency = data['urgency'] as String? ?? 'normal';
+        _quantity = (data['quantity_needed'] as int?) ?? 1;
+      });
+    } catch (_) {}
+  }
 
   @override
   void dispose() { _itemCtrl.dispose(); _descCtrl.dispose(); super.dispose(); }
@@ -78,7 +100,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
         title: Text('Post a Need', style: GoogleFonts.sora(fontWeight: FontWeight.w800, fontSize: 17)),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
-          onPressed: () => context.go('/ngo'),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/ngo'),
         ),
       ),
       body: Column(children: [

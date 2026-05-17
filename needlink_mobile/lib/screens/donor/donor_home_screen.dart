@@ -6,6 +6,8 @@ import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
+import '../../widgets/skeleton.dart';
 
 class DonorHomeScreen extends ConsumerStatefulWidget {
   const DonorHomeScreen({super.key});
@@ -59,22 +61,42 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {},
+                icon: const Icon(Icons.map_outlined),
+                onPressed: () => context.push('/donor/map'),
+                tooltip: 'NGO Map',
               ),
+              Stack(alignment: Alignment.center, children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => context.push('/donor/notifications'),
+                ),
+                Consumer(builder: (ctx, watchRef, child) {
+                  final count = watchRef.watch(unreadNotificationCountProvider);
+                  if (count == 0) return const SizedBox.shrink();
+                  return Positioned(
+                    top: 8, right: 8,
+                    child: Container(
+                      width: 16, height: 16,
+                      decoration: const BoxDecoration(color: kUrgent, shape: BoxShape.circle),
+                      child: Center(child: Text(
+                        count > 9 ? '9+' : '$count',
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
+                      )),
+                    ),
+                  );
+                }),
+              ]),
               Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: profileAsync.when(
-                  data: (p) => CircleAvatar(
+                  data: (p) => UserAvatar(
+                    seed: p?.id ?? 'default',
+                    initials: p?.fullName.isNotEmpty == true ? p!.fullName[0] : '?',
+                    avatarUrl: p?.avatarUrl,
                     radius: 16,
-                    backgroundColor: kPrimary,
-                    child: Text(
-                      p?.fullName.isNotEmpty == true ? p!.fullName[0].toUpperCase() : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                    ),
                   ),
-                  loading: () => const SizedBox(width: 32),
-                  error: (_, _) => const SizedBox(width: 32),
+                  loading: () => const SizedBox(width: 32, height: 32),
+                  error: (_, _) => const SizedBox(width: 32, height: 32),
                 ),
               ),
             ],
@@ -159,18 +181,22 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
                   if (ni == 0 && need.isUrgent) {
                     return _HeroCard(
                       need: need,
-                      onTap: () => context.go('/donor/need/${need.id}'),
+                      onTap: () => context.push('/donor/need/${need.id}'),
                     );
                   }
                   return _CompactCard(
                     need: need,
-                    onTap: () => context.go('/donor/need/${need.id}'),
+                    onTap: () => context.push('/donor/need/${need.id}'),
                   );
                 },
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)),
+          loading: () => ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            itemCount: 6,
+            itemBuilder: (_, _) => const NeedCardSkeleton(),
+          ),
           error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: kUrgent))),
         ),
       ),

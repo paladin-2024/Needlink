@@ -12,15 +12,18 @@ import 'screens/donor/need_detail_screen.dart';
 import 'screens/donor/my_pledges_screen.dart';
 import 'screens/donor/tracking_detail_screen.dart';
 import 'screens/donor/profile_screen.dart';
+import 'screens/donor/saved_needs_screen.dart';
+import 'screens/donor/notifications_screen.dart';
+import 'screens/donor/ngo_map_screen.dart';
 import 'screens/ngo/ngo_home_screen.dart';
 import 'screens/ngo/create_need_screen.dart';
 import 'screens/ngo/ngo_pledges_screen.dart';
 import 'screens/ngo/impact_reports_screen.dart';
+import 'screens/ngo/ngo_analytics_screen.dart';
 import 'screens/ngo/ngo_settings_screen.dart';
+import 'screens/ngo/verification_request_screen.dart';
 import 'widgets/app_shell.dart';
 
-// Listens to Supabase auth state changes and notifies GoRouter to re-evaluate
-// its redirect (so post-OAuth sign-in routes correctly without manual navigation).
 class _AuthNotifier extends ChangeNotifier {
   late final StreamSubscription<AuthState> _sub;
 
@@ -48,20 +51,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final uri = state.uri;
 
-      // Intercept OAuth deep link before GoRouter tries to route it.
-      // Supabase (via authCallbackUrlHostname) will exchange the code;
-      // SplashScreen then waits for SIGNED_IN and routes by role.
       if (uri.scheme == 'io.needlink.app' || location == '/login-callback') {
         return '/splash';
       }
 
-      // Root path falls through to splash
       if (location == '/') return '/splash';
 
-      return null; // all other guards handled inside SplashScreen / individual pages
+      return null;
     },
     routes: [
-      // Handles the OAuth deep link path after scheme stripping
       GoRoute(path: '/login-callback', redirect: (_, _) => '/splash'),
 
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
@@ -78,7 +76,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/donor/profile', builder: (_, _) => const DonorProfileScreen()),
         ],
       ),
-      // Donor detail screens (full-screen, no bottom nav)
+      // Donor full-screen routes
       GoRoute(
         path: '/donor/need/:id',
         builder: (_, state) => NeedDetailScreen(needId: state.pathParameters['id']!),
@@ -87,19 +85,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/donor/tracking/:id',
         builder: (_, state) => TrackingDetailScreen(pledgeId: state.pathParameters['id']!),
       ),
+      GoRoute(path: '/donor/saved', builder: (_, _) => const SavedNeedsScreen()),
+      GoRoute(path: '/donor/notifications', builder: (_, _) => const NotificationsScreen()),
+      GoRoute(path: '/donor/map', builder: (_, _) => const NgoMapScreen()),
 
       // ── NGO shell (persistent bottom nav) ──────────────────────────────────
       ShellRoute(
         builder: (context, state, child) => NgoShell(child: child),
         routes: [
           GoRoute(path: '/ngo', builder: (_, _) => const NgoHomeScreen()),
-          GoRoute(path: '/ngo/pledges', builder: (_, _) => const NgoPledgesScreen()),
+          GoRoute(path: '/ngo/analytics', builder: (_, _) => const NgoAnalyticsScreen()),
           GoRoute(path: '/ngo/reports', builder: (_, _) => const ImpactReportsScreen()),
+          GoRoute(path: '/ngo/pledges', builder: (_, _) => const NgoPledgesScreen()),
           GoRoute(path: '/ngo/settings', builder: (_, _) => const NgoSettingsScreen()),
         ],
       ),
-      // NGO detail screens (full-screen, no bottom nav)
+      // NGO full-screen routes
       GoRoute(path: '/ngo/needs/new', builder: (_, _) => const CreateNeedScreen()),
+      GoRoute(path: '/ngo/needs/new/:templateId',
+        builder: (_, state) => CreateNeedScreen(templateId: state.pathParameters['templateId'])),
+      GoRoute(path: '/ngo/verification', builder: (_, _) => const VerificationRequestScreen()),
     ],
   );
 });

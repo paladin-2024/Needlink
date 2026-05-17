@@ -6,6 +6,8 @@ import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
+import '../../widgets/skeleton.dart';
 
 class NgoHomeScreen extends ConsumerWidget {
   const NgoHomeScreen({super.key});
@@ -70,7 +72,7 @@ class NgoHomeScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               GestureDetector(
-                                onTap: () => context.go('/ngo/needs/new'),
+                                onTap: () => context.push('/ngo/needs/new'),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                                   decoration: BoxDecoration(
@@ -102,10 +104,10 @@ class NgoHomeScreen extends ConsumerWidget {
                       needsAsync.when(
                         data: (needs) => pledgesAsync.when(
                           data: (pledges) => _StatsRow(needs: needs, pledges: pledges),
-                          loading: () => const SizedBox(height: 64),
+                          loading: () => const StatsRowSkeleton(),
                           error: (_, _) => const SizedBox(height: 64),
                         ),
-                        loading: () => const SizedBox(height: 64),
+                        loading: () => const StatsRowSkeleton(),
                         error: (_, _) => const SizedBox(height: 64),
                       ),
                     ],
@@ -328,9 +330,6 @@ class _IncomingPledgeCardState extends ConsumerState<_IncomingPledgeCard> {
   Widget build(BuildContext context) {
     final donor = widget.pledge.donor;
     final need = widget.pledge.donationNeed;
-    final initials = donor?.fullName.isNotEmpty == true
-        ? donor!.fullName[0].toUpperCase()
-        : '?';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -348,18 +347,11 @@ class _IncomingPledgeCardState extends ConsumerState<_IncomingPledgeCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0891B2), Color(0xFF0E7490)],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Center(child: Text(initials, style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15,
-              ))),
+            UserAvatar(
+              seed: donor?.id ?? widget.pledge.donorId,
+              initials: donor?.fullName.isNotEmpty == true ? donor!.fullName[0] : '?',
+              avatarUrl: donor?.avatarUrl,
+              radius: 19,
             ),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -475,6 +467,14 @@ class _ActiveNeedTile extends StatelessWidget {
                       Text('$pct%', style: GoogleFonts.jetBrainsMono(
                         fontSize: 10, fontWeight: FontWeight.w700, color: catColor,
                       )),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => context.push('/ngo/needs/new/${need.id}'),
+                        child: Tooltip(
+                          message: 'Reuse as template',
+                          child: Icon(Icons.copy_rounded, size: 14, color: kMutedFg),
+                        ),
+                      ),
                     ]),
                     const SizedBox(height: 6),
                     ClipRRect(

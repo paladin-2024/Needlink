@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
+import '../../services/storage_service.dart';
 
 class NgoPledgesScreen extends ConsumerStatefulWidget {
   const NgoPledgesScreen({super.key});
@@ -17,6 +21,39 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
   String? _acting;
   String _filter = 'All';
   static const _filters = ['All', 'Pending', 'Confirmed', 'Rejected'];
+
+  // Bulk selection
+  bool _bulkMode = false;
+  final Set<String> _selected = {};
+
+  void _toggleBulk() {
+    HapticFeedback.selectionClick();
+    setState(() { _bulkMode = !_bulkMode; _selected.clear(); });
+  }
+
+  Future<void> _bulkAct(String action) async {
+    if (_selected.isEmpty) return;
+    final ids = _selected.toList();
+    setState(() { _acting = 'bulk'; });
+    try {
+      final client = ref.read(supabaseProvider);
+      for (final id in ids) {
+        await client.from('pledges').update({'status': action}).eq('id', id);
+      }
+      ref.invalidate(myNgoPendingPledgesProvider);
+      ref.invalidate(myNgoNeedsProvider);
+      ref.invalidate(donationNeedsProvider);
+      await _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Bulk action failed: $e'), backgroundColor: kUrgent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() { _acting = null; _bulkMode = false; _selected.clear(); });
+    }
+  }
 
   static const _shadow = [
     BoxShadow(color: Color(0x140891B2), blurRadius: 10, offset: Offset(0, 2)),
@@ -36,7 +73,7 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
       _ngoId = ngoData['id'];
       final data = await client
           .from('pledges')
-          .select('*, donation_need:donation_needs!inner(*, ngo_id), donor:profiles!donor_id(full_name, phone)')
+          .select('*, donation_need:donation_needs!inner(*, ngo_id), donor:profiles!donor_id(id, full_name, phone, avatar_url)')
           .eq('donation_need.ngo_id', _ngoId!)
           .order('created_at', ascending: false);
       if (mounted) setState(() { _pledges = List<Map<String, dynamic>>.from(data); _loading = false; });
@@ -114,12 +151,50 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
                                 fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white,
                               )),
                             ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: Icon(_bulkMode ? Icons.close_rounded : Icons.checklist_rounded,
+                              color: _bulkMode ? kUrgent : kMutedFg, size: 20),
+                            onPressed: _toggleBulk,
+                            padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+                            tooltip: _bulkMode ? 'Cancel' : 'Select',
+                          ),
                           IconButton(
                             icon: const Icon(Icons.refresh_rounded, color: kMutedFg, size: 20),
                             onPressed: _load, padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                           ),
                         ]),
+                        if (_bulkMode && _selected.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Row(children: [
+                            Text('${_selected.length} selected', style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13, color: kMutedFg,
+                            )),
+                            const Spacer(),
+                            OutlinedButton(
+                              onPressed: _acting != null ? null : () => _bulkAct('rejected'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFFDC2626),
+                                side: const BorderSide(color: Color(0xFFFECACA)),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                minimumSize: Size.zero,
+                              ),
+                              child: const Text('Reject All'),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: _acting != null ? null : () => _bulkAct('confirmed'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kPrimary, elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                minimumSize: Size.zero,
+                              ),
+                              child: _acting == 'bulk'
+                                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Text('Confirm All', style: TextStyle(color: Colors.white)),
+                            ),
+                          ]),
+                        ],
                         const SizedBox(height: 14),
 
                         // Summary tiles
@@ -186,7 +261,14 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (_, i) => _PledgeCard(pledge: filtered[i], acting: _acting, onAct: _act, shadow: _shadow),
+                          (_, i) => _PledgeCard(
+                            pledge: filtered[i], acting: _acting, onAct: _act, shadow: _shadow,
+                            bulkMode: _bulkMode,
+                            selected: _selected.contains(filtered[i]['id'] as String? ?? ''),
+                            onToggleSelect: (id) => setState(() {
+                              if (_selected.contains(id)) { _selected.remove(id); } else { _selected.add(id); }
+                            }),
+                          ),
                           childCount: filtered.length,
                         ),
                       ),
@@ -228,12 +310,24 @@ class _SummaryTile extends StatelessWidget {
 
 // ── Pledge card ───────────────────────────────────────────────────────────────
 
-class _PledgeCard extends StatelessWidget {
+class _PledgeCard extends StatefulWidget {
   final Map<String, dynamic> pledge;
   final String? acting;
   final Future<void> Function(Map<String, dynamic>, String) onAct;
   final List<BoxShadow> shadow;
-  const _PledgeCard({required this.pledge, required this.acting, required this.onAct, required this.shadow});
+  final bool bulkMode;
+  final bool selected;
+  final void Function(String) onToggleSelect;
+  const _PledgeCard({
+    required this.pledge, required this.acting, required this.onAct, required this.shadow,
+    required this.bulkMode, required this.selected, required this.onToggleSelect,
+  });
+  @override
+  State<_PledgeCard> createState() => _PledgeCardState();
+}
+
+class _PledgeCardState extends State<_PledgeCard> {
+  bool _uploadingProof = false;
 
   static const _statusConfig = {
     'pending':   (Color(0xFFFFFBEB), Color(0xFFD97706), 'Pending'),
@@ -243,36 +337,49 @@ class _PledgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pledge = widget.pledge;
     final status = pledge['status'] as String;
     final cfg = _statusConfig[status] ?? (kMuted, kMutedFg, status);
     final donor = pledge['donor'] as Map<String, dynamic>?;
     final need = pledge['donation_need'] as Map<String, dynamic>?;
     final isPending = status == 'pending';
-    final isBusy = acting == pledge['id'];
+    final isConfirmed = status == 'confirmed';
+    final isBusy = widget.acting == pledge['id'];
+    final proofUrl = pledge['delivery_proof_url'] as String?;
 
-    return Container(
+    return GestureDetector(
+      onTap: widget.bulkMode ? () => widget.onToggleSelect(pledge['id'] as String? ?? '') : null,
+      child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: kSurface, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isPending ? const Color(0xFFFDE68A) : kBorder),
-        boxShadow: shadow,
+        color: widget.selected ? kPrimary.withAlpha(8) : kSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: widget.selected ? kPrimary : isPending ? const Color(0xFFFDE68A) : kBorder),
+        boxShadow: widget.shadow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Container(
-            width: 38, height: 38,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0C4A6E), Color(0xFF0891B2)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
+          if (widget.bulkMode)
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 22, height: 22,
+                decoration: BoxDecoration(
+                  color: widget.selected ? kPrimary : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: widget.selected ? kPrimary : kBorder, width: 2),
+                ),
+                child: widget.selected ? const Icon(Icons.check_rounded, size: 14, color: Colors.white) : null,
               ),
-              borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(child: Text(
-              (donor?['full_name'] as String? ?? 'D')[0].toUpperCase(),
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
-            )),
+          UserAvatar(
+            seed: donor?['id'] as String? ?? 'donor',
+            initials: (donor?['full_name'] as String? ?? 'D')[0].toUpperCase(),
+            avatarUrl: donor?['avatar_url'] as String?,
+            radius: 19,
           ),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -317,11 +424,11 @@ class _PledgeCard extends StatelessWidget {
             ]),
           ),
         ],
-        if (isPending) ...[
+        if (isPending && !widget.bulkMode) ...[
           const SizedBox(height: 12),
           Row(children: [
             Expanded(child: OutlinedButton.icon(
-              onPressed: isBusy ? null : () => onAct(pledge, 'rejected'),
+              onPressed: isBusy ? null : () => widget.onAct(pledge, 'rejected'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFDC2626),
                 side: const BorderSide(color: Color(0xFFFECACA)),
@@ -332,7 +439,7 @@ class _PledgeCard extends StatelessWidget {
             )),
             const SizedBox(width: 8),
             Expanded(flex: 2, child: ElevatedButton.icon(
-              onPressed: isBusy ? null : () => onAct(pledge, 'confirmed'),
+              onPressed: isBusy ? null : () { HapticFeedback.mediumImpact(); widget.onAct(pledge, 'confirmed'); },
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimary, minimumSize: const Size(0, 42), elevation: 0,
               ),
@@ -343,7 +450,45 @@ class _PledgeCard extends StatelessWidget {
             )),
           ]),
         ],
+        // Delivery proof upload for confirmed pledges
+        if (isConfirmed && !widget.bulkMode) ...[
+          const SizedBox(height: 10),
+          proofUrl != null
+              ? Row(children: [
+                  const Icon(Icons.image_rounded, size: 14, color: kMatched),
+                  const SizedBox(width: 6),
+                  Text('Proof uploaded', style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12, color: kMatched, fontWeight: FontWeight.w600,
+                  )),
+                ])
+              : OutlinedButton.icon(
+                  onPressed: _uploadingProof ? null : () async {
+                    setState(() => _uploadingProof = true);
+                    try {
+                      final url = await StorageService.uploadDeliveryProof(pledge['id'] as String);
+                      if (url != null) {
+                        await Supabase.instance.client
+                            .from('pledges')
+                            .update({'delivery_proof_url': url})
+                            .eq('id', pledge['id']);
+                        if (mounted) setState(() { pledge['delivery_proof_url'] = url; });
+                      }
+                    } catch (_) {} finally {
+                      if (mounted) setState(() => _uploadingProof = false);
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kPrimary, side: const BorderSide(color: kBorder),
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  icon: _uploadingProof
+                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))
+                      : const Icon(Icons.upload_rounded, size: 15),
+                  label: Text('Upload Delivery Proof', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
+                ),
+        ],
       ]),
-    );
+    ));
   }
 }

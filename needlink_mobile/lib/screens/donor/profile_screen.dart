@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models.dart';
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
+import '../../services/storage_service.dart';
 
 class DonorProfileScreen extends ConsumerWidget {
   const DonorProfileScreen({super.key});
@@ -28,7 +30,6 @@ class DonorProfileScreen extends ConsumerWidget {
             final totalItems = pledges.fold<int>(0, (s, p) => s + p.quantity);
             final ngoIds = pledges.map((p) => p.donationNeed?.ngoId).whereType<String>().toSet().length;
             final recent = pledges.take(3).toList();
-            final initial = profile?.fullName.isNotEmpty == true ? profile!.fullName[0].toUpperCase() : '?';
             final tier = pledges.length >= 10 ? 'Platinum Donor' : pledges.length >= 5 ? 'Gold Donor' : 'Active Donor';
 
             return CustomScrollView(
@@ -54,29 +55,41 @@ class DonorProfileScreen extends ConsumerWidget {
                                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800,
                               )),
                               const Spacer(),
+                              Stack(alignment: Alignment.center, children: [
                               IconButton(
                                 icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-                                onPressed: () {},
+                                onPressed: () => context.push('/donor/notifications'),
                                 padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                               ),
+                              Consumer(builder: (_, profileConsumerRef, child) {
+                                final count = profileConsumerRef.watch(unreadNotificationCountProvider);
+                                if (count == 0) return const SizedBox.shrink();
+                                return Positioned(
+                                  top: 0, right: 0,
+                                  child: Container(
+                                    width: 14, height: 14,
+                                    decoration: const BoxDecoration(color: kUrgent, shape: BoxShape.circle),
+                                    child: Center(child: Text('$count', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white))),
+                                  ),
+                                );
+                              }),
+                            ]),
                             ]),
                             const SizedBox(height: 20),
                             Stack(children: [
                               Container(
-                                width: 72, height: 72,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF164E63), Color(0xFF0891B2)],
-                                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                                  ),
                                   border: Border.all(color: Colors.white.withAlpha(60), width: 2),
                                 ),
-                                child: Center(child: Text(initial, style: GoogleFonts.sora(
-                                  color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900,
-                                ))),
+                                child: UserAvatar(
+                                  seed: profile?.id ?? 'default',
+                                  initials: profile?.fullName.isNotEmpty == true ? profile!.fullName[0] : '?',
+                                  avatarUrl: profile?.avatarUrl,
+                                  radius: 36,
+                                ),
                               ),
-                              Positioned(bottom: 0, right: 0, child: Container(
+                              Positioned(bottom: 2, right: 2, child: Container(
                                 width: 22, height: 22,
                                 decoration: const BoxDecoration(color: kMatched, shape: BoxShape.circle),
                                 child: const Icon(Icons.verified_rounded, size: 13, color: Colors.white),
@@ -164,6 +177,18 @@ class DonorProfileScreen extends ConsumerWidget {
                       ...recent.map((p) => _ContributionTile(pledge: p)),
                       const SizedBox(height: 22),
                     ],
+
+                    // Quick links
+                    Text('QUICK LINKS', style: GoogleFonts.sora(
+                      fontSize: 11, fontWeight: FontWeight.w800, color: kMutedFg, letterSpacing: 1.5,
+                    )),
+                    const SizedBox(height: 10),
+                    _SettingsGroup(shadow: _shadow, items: [
+                      _SettingsTile(Icons.favorite_outline_rounded, 'Saved Needs', () => context.push('/donor/saved')),
+                      _SettingsTile(Icons.notifications_none_rounded, 'Notifications', () => context.push('/donor/notifications')),
+                      _SettingsTile(Icons.map_outlined, 'NGO Map', () => context.push('/donor/map')),
+                    ]),
+                    const SizedBox(height: 12),
 
                     // Settings section
                     Text('SETTINGS', style: GoogleFonts.sora(
@@ -350,17 +375,32 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _phoneCtrl;
   bool _saving = false;
+  bool _uploadingAvatar = false;
   String? _error;
+  String? _newAvatarUrl;
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.profile.fullName);
     _phoneCtrl = TextEditingController(text: widget.profile.phone ?? '');
+    _newAvatarUrl = widget.profile.avatarUrl;
   }
 
   @override
   void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); super.dispose(); }
+
+  Future<void> _pickAvatar() async {
+    setState(() => _uploadingAvatar = true);
+    try {
+      final url = await StorageService.uploadAvatar(widget.profile.id);
+      if (url != null) setState(() => _newAvatarUrl = url);
+    } catch (e) {
+      setState(() => _error = 'Avatar upload failed: $e');
+    } finally {
+      setState(() => _uploadingAvatar = false);
+    }
+  }
 
   Future<void> _save() async {
     if (_nameCtrl.text.trim().isEmpty) { setState(() => _error = 'Name cannot be empty'); return; }
@@ -369,6 +409,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       await Supabase.instance.client.from('profiles').update({
         'full_name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim().isNotEmpty ? _phoneCtrl.text.trim() : null,
+        'avatar_url': _newAvatarUrl,
       }).eq('id', widget.profile.id);
       widget.onSaved();
       if (mounted) Navigator.pop(context);
@@ -389,6 +430,32 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
         const SizedBox(height: 16),
         Text('Edit Profile', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
         const SizedBox(height: 20),
+        // Avatar picker
+        Center(
+          child: GestureDetector(
+            onTap: _uploadingAvatar ? null : _pickAvatar,
+            child: Stack(
+              children: [
+                _uploadingAvatar
+                    ? Container(
+                        width: 72, height: 72,
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE2E8F0)),
+                        child: const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))),
+                      )
+                    : UserAvatar(
+                        seed: widget.profile.id,
+                        initials: widget.profile.fullName.isNotEmpty ? widget.profile.fullName[0] : '?',
+                        avatarUrl: _newAvatarUrl,
+                        radius: 36,
+                        showEditBadge: true,
+                      ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Center(child: Text('Tap to change photo', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: kMutedFg))),
+        const SizedBox(height: 18),
         if (_error != null) ...[
           Container(
             padding: const EdgeInsets.all(12),

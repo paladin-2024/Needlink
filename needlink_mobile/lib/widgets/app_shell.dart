@@ -32,7 +32,7 @@ class NgoShell extends StatelessWidget {
 
   static const _tabs = [
     _NavItem(Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded, 'Dashboard', '/ngo'),
-    _NavItem(Icons.assessment_outlined, Icons.assessment_rounded, 'Reports', '/ngo/reports'),
+    _NavItem(Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Analytics', '/ngo/analytics'),
     _NavItem(Icons.checklist_outlined, Icons.checklist_rounded, 'Pledges', '/ngo/pledges'),
     _NavItem(Icons.settings_outlined, Icons.settings_rounded, 'Settings', '/ngo/settings'),
   ];

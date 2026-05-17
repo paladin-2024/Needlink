@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
 import '../../theme.dart';
+import '../../widgets/skeleton.dart';
 
 class MyPledgesScreen extends ConsumerStatefulWidget {
   const MyPledgesScreen({super.key});
@@ -98,7 +99,11 @@ class _MyPledgesScreenState extends ConsumerState<MyPledgesScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)),
+        loading: () => ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 76, 16, 16),
+          itemCount: 4,
+          itemBuilder: (_, _) => const PledgeCardSkeleton(),
+        ),
         error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: kUrgent))),
       ),
     );

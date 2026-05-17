@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:in_app_review/in_app_review.dart';
 import '../../models.dart';
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
 
 class NeedDetailScreen extends ConsumerStatefulWidget {
   final String needId;
@@ -54,6 +58,12 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
       ref.invalidate(donationNeedsProvider);
       ref.invalidate(myNgoPendingPledgesProvider);
       setState(() { _success = true; _pledging = false; });
+      HapticFeedback.mediumImpact();
+      // Prompt for app review after first successful pledge
+      try {
+        final inAppReview = InAppReview.instance;
+        if (await inAppReview.isAvailable()) inAppReview.requestReview();
+      } catch (_) {}
     } catch (e) {
       setState(() { _error = e.toString(); _pledging = false; });
     }
@@ -107,14 +117,19 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                   Row(children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                      onPressed: () => context.go('/donor'),
+                      onPressed: () => context.canPop() ? context.pop() : context.go('/donor'),
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(),
                     ),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
-                      onPressed: () {},
+                      onPressed: () {
+                        final text = '${need.itemName} — ${need.ngo?.name ?? 'NeedLink'} needs your help!\n'
+                            '${need.quantityPledged} of ${need.quantityNeeded} units pledged so far.\n'
+                            'Download NeedLink to make a difference.';
+                        Share.share(text);
+                      },
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(),
                     ),
@@ -192,16 +207,12 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                   border: Border.all(color: kBorder), boxShadow: _shadow,
                 ),
                 child: Row(children: [
-                  Container(
-                    width: 44, height: 44,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0C4A6E), Color(0xFF0891B2)],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.corporate_fare_rounded, size: 22, color: Colors.white),
+                  UserAvatar(
+                    seed: need.ngo!.id,
+                    initials: need.ngo!.name.isNotEmpty ? need.ngo!.name[0].toUpperCase() : 'N',
+                    avatarUrl: need.ngo!.logoUrl,
+                    radius: 22,
+                    isOrg: true,
                   ),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

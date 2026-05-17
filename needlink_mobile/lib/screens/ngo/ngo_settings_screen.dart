@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/user_avatar.dart';
+import '../../services/storage_service.dart';
 
 class NgoSettingsScreen extends ConsumerStatefulWidget {
   const NgoSettingsScreen({super.key});
@@ -17,6 +20,8 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
   bool _notifyDelivery = true;
   bool _notifySystem = false;
   bool _saving = false;
+  bool _uploadingLogo = false;
+  String? _newLogoUrl;
 
   late final _nameCtrl = TextEditingController();
   late final _regCtrl = TextEditingController();
@@ -87,18 +92,42 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                     ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Container(
-                          width: 56, height: 56,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0C4A6E), Color(0xFF0891B2)],
-                              begin: Alignment.topLeft, end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(child: Text(initial, style: GoogleFonts.sora(
-                            color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900,
-                          ))),
+                        GestureDetector(
+                          onTap: _uploadingLogo || ngo == null ? null : () async {
+                            setState(() => _uploadingLogo = true);
+                            try {
+                              final url = await StorageService.uploadNgoLogo(ngo.id);
+                              if (url != null) {
+                                setState(() => _newLogoUrl = url);
+                                await Supabase.instance.client.from('ngos')
+                                    .update({'logo_url': url}).eq('id', ngo.id);
+                                ref.invalidate(myNgoProvider);
+                              }
+                            } catch (_) {} finally {
+                              if (mounted) setState(() => _uploadingLogo = false);
+                            }
+                          },
+                          child: _uploadingLogo
+                              ? Container(
+                                  width: 56, height: 56,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE2E8F0),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Center(child: SizedBox(width: 20, height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))),
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: UserAvatar(
+                                    seed: ngo?.id ?? 'ngo',
+                                    initials: initial,
+                                    avatarUrl: _newLogoUrl ?? ngo?.logoUrl,
+                                    radius: 28,
+                                    isOrg: true,
+                                    showEditBadge: true,
+                                  ),
+                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -113,16 +142,11 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                                 fontSize: 12, color: kMatched, fontWeight: FontWeight.w600,
                               )),
                             ]),
+                          const SizedBox(height: 2),
+                          Text('Tap logo to update', style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11, color: kMutedFg,
+                          )),
                         ])),
-                        OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: kPrimary, side: const BorderSide(color: kPrimary),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            minimumSize: Size.zero,
-                          ),
-                          child: Text('Update Logo', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
-                        ),
                       ]),
                       const SizedBox(height: 16),
                       TextField(
@@ -181,6 +205,10 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                   _SectionLabel(Icons.security_rounded, 'Transparency & Security'),
                   const SizedBox(height: 10),
                   _ListCard(shadow: _shadow, items: [
+                    _ListItem(Icons.verified_outlined, 'Request Verification', ngo?.verified == true ? 'Verified' : null, () {
+                      HapticFeedback.selectionClick();
+                      if (ngo?.verified != true) context.push('/ngo/verification');
+                    }),
                     _ListItem(Icons.lock_reset_rounded, 'Update Password', null, () {}),
                     _ListItem(Icons.shield_rounded, 'Two-Factor Authentication', 'Enabled', () {}),
                     _ListItem(Icons.visibility_outlined, 'Privacy Settings', null, () {}),

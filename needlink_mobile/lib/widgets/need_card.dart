@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../providers.dart';
+import 'user_avatar.dart';
 
-class NeedCard extends StatelessWidget {
+class NeedCard extends ConsumerWidget {
   final DonationNeed need;
   final VoidCallback onTap;
   const NeedCard({super.key, required this.need, required this.onTap});
@@ -29,12 +34,16 @@ class NeedCard extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMatched = need.status == 'matched';
     final isUrgent = need.isUrgent;
     final progress = need.progress;
     final catColor = _categoryColors[need.category] ?? kPrimary;
     final gradients = _categoryGradients[need.category] ?? [kDark, kPrimaryDark];
+    final savedIds = ref.watch(savedNeedIdsProvider).when(
+      data: (ids) => ids, loading: () => const <String>{}, error: (err, st) => const <String>{},
+    );
+    final isSaved = savedIds.contains(need.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -43,7 +52,9 @@ class NeedCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: kSurface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: isUrgent ? kUrgent.withAlpha(80) : kBorder),
+          border: Border.all(color: need.isFeatured
+              ? kPrimary.withAlpha(80)
+              : isUrgent ? kUrgent.withAlpha(80) : kBorder),
           boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 12, offset: const Offset(0, 3))],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -61,16 +72,14 @@ class NeedCard extends StatelessWidget {
                 ),
               ),
               child: Stack(children: [
-                // Subtle pattern overlay
-                Positioned.fill(
-                  child: CustomPaint(painter: _DotPatternPainter()),
-                ),
-                // Status badge top-left
+                Positioned.fill(child: CustomPaint(painter: _DotPatternPainter())),
+                Positioned(top: 12, left: 12,
+                  child: _StatusBadge(isUrgent: isUrgent, isMatched: isMatched, isFeatured: need.isFeatured)),
+                // Save button top-right
                 Positioned(
-                  top: 12, left: 12,
-                  child: _StatusBadge(isUrgent: isUrgent, isMatched: isMatched),
+                  top: 8, right: 8,
+                  child: _SaveButton(needId: need.id, isSaved: isSaved, ref: ref),
                 ),
-                // Category icon center
                 Center(child: Container(
                   width: 52, height: 52,
                   decoration: BoxDecoration(
@@ -82,13 +91,17 @@ class NeedCard extends StatelessWidget {
                     size: 28, color: Colors.white,
                   ),
                 )),
-                // NGO name bottom-left
                 if (need.ngo != null)
                   Positioned(
                     bottom: 10, left: 12,
                     child: Row(children: [
-                      const Icon(Icons.corporate_fare_rounded, size: 12, color: Colors.white70),
-                      const SizedBox(width: 4),
+                      UserAvatar(
+                        seed: need.ngo!.id,
+                        initials: need.ngo!.name.isNotEmpty ? need.ngo!.name[0].toUpperCase() : 'N',
+                        avatarUrl: need.ngo!.logoUrl,
+                        radius: 10, isOrg: true,
+                      ),
+                      const SizedBox(width: 6),
                       Text(need.ngo!.name,
                         style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500),
                         maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -114,7 +127,6 @@ class NeedCard extends StatelessWidget {
               ],
               const SizedBox(height: 10),
 
-              // Progress
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text('${need.quantityPledged} of ${need.quantityNeeded} pledged',
                   style: const TextStyle(fontSize: 11, color: kMutedFg)),
@@ -160,10 +172,86 @@ class NeedCard extends StatelessWidget {
   }
 }
 
+class _SaveButton extends StatefulWidget {
+  final String needId;
+  final bool isSaved;
+  final WidgetRef ref;
+  const _SaveButton({required this.needId, required this.isSaved, required this.ref});
+
+  @override
+  State<_SaveButton> createState() => _SaveButtonState();
+}
+
+class _SaveButtonState extends State<_SaveButton> with SingleTickerProviderStateMixin {
+  late bool _saved;
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _saved = widget.isSaved;
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+    _scale = Tween<double>(begin: 1, end: 1.3).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
+  }
+
+  @override
+  void didUpdateWidget(_SaveButton old) {
+    super.didUpdateWidget(old);
+    if (old.isSaved != widget.isSaved) setState(() => _saved = widget.isSaved);
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  Future<void> _toggle() async {
+    HapticFeedback.lightImpact();
+    await _ctrl.forward();
+    await _ctrl.reverse();
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+    if (_saved) {
+      await Supabase.instance.client
+          .from('saved_needs')
+          .delete()
+          .eq('donor_id', user.id)
+          .eq('need_id', widget.needId);
+    } else {
+      await Supabase.instance.client
+          .from('saved_needs')
+          .upsert({'donor_id': user.id, 'need_id': widget.needId});
+    }
+    setState(() => _saved = !_saved);
+    widget.ref.invalidate(savedNeedIdsProvider);
+    widget.ref.invalidate(savedNeedsProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: _toggle,
+    child: ScaleTransition(
+      scale: _scale,
+      child: Container(
+        width: 32, height: 32,
+        decoration: BoxDecoration(
+          color: _saved ? const Color(0xFFDC2626).withAlpha(20) : Colors.white.withAlpha(30),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          _saved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          size: 17,
+          color: _saved ? const Color(0xFFDC2626) : Colors.white70,
+        ),
+      ),
+    ),
+  );
+}
+
 class _StatusBadge extends StatelessWidget {
   final bool isUrgent;
   final bool isMatched;
-  const _StatusBadge({required this.isUrgent, required this.isMatched});
+  final bool isFeatured;
+  const _StatusBadge({required this.isUrgent, required this.isMatched, required this.isFeatured});
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +260,17 @@ class _StatusBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(color: kMatched, borderRadius: BorderRadius.circular(20)),
         child: const Text('MATCHED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+      );
+    }
+    if (isFeatured && !isUrgent) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(color: kPrimary, borderRadius: BorderRadius.circular(20)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: const [
+          Icon(Icons.star_rounded, size: 11, color: Colors.white),
+          SizedBox(width: 3),
+          Text('FEATURED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+        ]),
       );
     }
     if (isUrgent) {
@@ -225,7 +324,6 @@ class _GoalChip extends StatelessWidget {
   );
 }
 
-// Subtle dot grid for hero area depth
 class _DotPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
