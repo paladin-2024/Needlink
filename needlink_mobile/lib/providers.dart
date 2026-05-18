@@ -105,18 +105,17 @@ final savedNeedsProvider = FutureProvider<List<SavedNeed>>((ref) async {
   return (data as List).map((e) => SavedNeed.fromJson(e as Map<String, dynamic>)).toList();
 });
 
-// Notifications for current user
-final notificationsProvider = FutureProvider<List<AppNotification>>((ref) async {
-  ref.keepAlive();
+// Notifications for current user — realtime stream so new rows arrive instantly.
+final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  final data = await Supabase.instance.client
+  if (user == null) return Stream.value([]);
+  return Supabase.instance.client
       .from('notifications')
-      .select()
+      .stream(primaryKey: ['id'])
       .eq('user_id', user.id)
       .order('created_at', ascending: false)
-      .limit(50);
-  return (data as List).map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
+      .limit(50)
+      .map((data) => data.map((e) => AppNotification.fromJson(e)).toList());
 });
 
 final unreadNotificationCountProvider = Provider<int>((ref) {

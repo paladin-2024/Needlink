@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lottie/lottie.dart';
 import '../../providers.dart';
@@ -30,7 +31,7 @@ class SavedNeedsScreen extends ConsumerWidget {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded),
+                        icon: const Icon(HugeIcons.strokeRoundedArrowLeft01),
                         onPressed: () => context.canPop() ? context.pop() : context.go('/donor/profile'),
                         padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                       ),
@@ -170,7 +171,7 @@ class _SavedNeedCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.favorite_rounded, size: 18, color: Color(0xFFDC2626)),
+              child: const Icon(HugeIcons.strokeRoundedFavourite, size: 18, color: Color(0xFFDC2626)),
             ),
           ),
         ]),

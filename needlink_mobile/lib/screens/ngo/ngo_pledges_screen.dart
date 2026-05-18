@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
@@ -153,14 +154,14 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
                             ),
                           const SizedBox(width: 4),
                           IconButton(
-                            icon: Icon(_bulkMode ? Icons.close_rounded : Icons.checklist_rounded,
+                            icon: Icon(_bulkMode ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedCheckList,
                               color: _bulkMode ? kUrgent : kMutedFg, size: 20),
                             onPressed: _toggleBulk,
                             padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                             tooltip: _bulkMode ? 'Cancel' : 'Select',
                           ),
                           IconButton(
-                            icon: const Icon(Icons.refresh_rounded, color: kMutedFg, size: 20),
+                            icon: const Icon(HugeIcons.strokeRoundedRefresh, color: kMutedFg, size: 20),
                             onPressed: _load, padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                           ),
                         ]),
@@ -242,7 +243,7 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
                     SliverFillRemaining(
                       child: Center(
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.inbox_rounded, size: 52, color: kMuted),
+                          Icon(HugeIcons.strokeRoundedInbox, size: 52, color: kMuted),
                           const SizedBox(height: 14),
                           Text(
                             _filter == 'All' ? 'No pledges yet' : 'No $_filter pledges',
@@ -372,7 +373,7 @@ class _PledgeCardState extends State<_PledgeCard> {
                   shape: BoxShape.circle,
                   border: Border.all(color: widget.selected ? kPrimary : kBorder, width: 2),
                 ),
-                child: widget.selected ? const Icon(Icons.check_rounded, size: 14, color: Colors.white) : null,
+                child: widget.selected ? const Icon(HugeIcons.strokeRoundedTick01, size: 14, color: Colors.white) : null,
               ),
             ),
           UserAvatar(
@@ -404,11 +405,11 @@ class _PledgeCardState extends State<_PledgeCard> {
         ),
         const SizedBox(height: 4),
         Row(children: [
-          const Icon(Icons.inventory_2_outlined, size: 13, color: kMutedFg),
+          const Icon(HugeIcons.strokeRoundedPackage, size: 13, color: kMutedFg),
           const SizedBox(width: 4),
           Text('${pledge['quantity']} units', style: const TextStyle(fontSize: 12, color: kMutedFg)),
           const SizedBox(width: 12),
-          const Icon(Icons.calendar_today_outlined, size: 13, color: kMutedFg),
+          const Icon(HugeIcons.strokeRoundedCalendar01, size: 13, color: kMutedFg),
           const SizedBox(width: 4),
           Text('By ${pledge['delivery_date']}', style: const TextStyle(fontSize: 12, color: kMutedFg)),
         ]),
@@ -418,7 +419,7 @@ class _PledgeCardState extends State<_PledgeCard> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: kBackground, borderRadius: BorderRadius.circular(8)),
             child: Row(children: [
-              const Icon(Icons.notes_rounded, size: 13, color: kMutedFg),
+              const Icon(HugeIcons.strokeRoundedNote01, size: 13, color: kMutedFg),
               const SizedBox(width: 6),
               Expanded(child: Text(pledge['notes'] as String, style: const TextStyle(fontSize: 12, color: kMutedFg))),
             ]),
@@ -434,7 +435,7 @@ class _PledgeCardState extends State<_PledgeCard> {
                 side: const BorderSide(color: Color(0xFFFECACA)),
                 minimumSize: const Size(0, 42),
               ),
-              icon: const Icon(Icons.close_rounded, size: 16),
+              icon: const Icon(HugeIcons.strokeRoundedCancel01, size: 16),
               label: const Text('Reject'),
             )),
             const SizedBox(width: 8),
@@ -445,7 +446,7 @@ class _PledgeCardState extends State<_PledgeCard> {
               ),
               icon: isBusy
                   ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+                  : const Icon(HugeIcons.strokeRoundedTick01, size: 16, color: Colors.white),
               label: const Text('Confirm Pledge', style: TextStyle(color: Colors.white)),
             )),
           ]),
@@ -455,7 +456,7 @@ class _PledgeCardState extends State<_PledgeCard> {
           const SizedBox(height: 10),
           proofUrl != null
               ? Row(children: [
-                  const Icon(Icons.image_rounded, size: 14, color: kMatched),
+                  const Icon(HugeIcons.strokeRoundedImage01, size: 14, color: kMatched),
                   const SizedBox(width: 6),
                   Text('Proof uploaded', style: GoogleFonts.plusJakartaSans(
                     fontSize: 12, color: kMatched, fontWeight: FontWeight.w600,
@@ -484,7 +485,7 @@ class _PledgeCardState extends State<_PledgeCard> {
                   ),
                   icon: _uploadingProof
                       ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary))
-                      : const Icon(Icons.upload_rounded, size: 15),
+                      : const Icon(HugeIcons.strokeRoundedUpload01, size: 15),
                   label: Text('Upload Delivery Proof', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
                 ),
         ],

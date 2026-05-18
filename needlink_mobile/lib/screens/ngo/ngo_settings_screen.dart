@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
@@ -63,7 +64,7 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                           await Supabase.instance.client.auth.signOut();
                           if (context.mounted) context.go('/login');
                         },
-                        icon: const Icon(Icons.logout_rounded, size: 15),
+                        icon: const Icon(HugeIcons.strokeRoundedLogout01, size: 15),
                         label: const Text('Logout'),
                         style: TextButton.styleFrom(foregroundColor: const Color(0xFFDC2626)),
                       ),
@@ -82,7 +83,7 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                   const SizedBox(height: 8),
 
                   // Org profile card
-                  _SectionLabel(Icons.corporate_fare_rounded, 'Organization Profile'),
+                  _SectionLabel(HugeIcons.strokeRoundedBuilding02, 'Organization Profile'),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -136,7 +137,7 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                           )),
                           if (ngo?.verified == true)
                             Row(children: [
-                              const Icon(Icons.verified_rounded, size: 13, color: kMatched),
+                              const Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 13, color: kMatched),
                               const SizedBox(width: 4),
                               Text('Verified', style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12, color: kMatched, fontWeight: FontWeight.w600,
@@ -192,7 +193,7 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Notifications
-                  _SectionLabel(Icons.notifications_active_outlined, 'Notification Preferences'),
+                  _SectionLabel(HugeIcons.strokeRoundedNotification01, 'Notification Preferences'),
                   const SizedBox(height: 10),
                   _ToggleCard(shadow: _shadow, items: [
                     _ToggleItem('New Donation Pledges', 'Alerts when a donor commits', _notifyPledges, (v) => setState(() => _notifyPledges = v)),
@@ -202,26 +203,26 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                   const SizedBox(height: 22),
 
                   // Security
-                  _SectionLabel(Icons.security_rounded, 'Transparency & Security'),
+                  _SectionLabel(HugeIcons.strokeRoundedSecurity, 'Transparency & Security'),
                   const SizedBox(height: 10),
                   _ListCard(shadow: _shadow, items: [
-                    _ListItem(Icons.verified_outlined, 'Request Verification', ngo?.verified == true ? 'Verified' : null, () {
+                    _ListItem(HugeIcons.strokeRoundedCheckmarkBadge01, 'Request Verification', ngo?.verified == true ? 'Verified' : null, () {
                       HapticFeedback.selectionClick();
                       if (ngo?.verified != true) context.push('/ngo/verification');
                     }),
-                    _ListItem(Icons.lock_reset_rounded, 'Update Password', null, () {}),
-                    _ListItem(Icons.shield_rounded, 'Two-Factor Authentication', 'Enabled', () {}),
-                    _ListItem(Icons.visibility_outlined, 'Privacy Settings', null, () {}),
+                    _ListItem(HugeIcons.strokeRoundedLock, 'Update Password', null, () {}),
+                    _ListItem(HugeIcons.strokeRoundedShield01, 'Two-Factor Authentication', 'Enabled', () {}),
+                    _ListItem(HugeIcons.strokeRoundedView, 'Privacy Settings', null, () {}),
                   ]),
                   const SizedBox(height: 22),
 
                   // Support
-                  _SectionLabel(Icons.info_outline_rounded, 'Support & Legal'),
+                  _SectionLabel(HugeIcons.strokeRoundedInformationCircle, 'Support & Legal'),
                   const SizedBox(height: 10),
                   _ListCard(shadow: _shadow, items: [
-                    _ListItem(Icons.help_center_outlined, 'Help Center', null, () {}),
-                    _ListItem(Icons.gavel_rounded, 'Terms of Service', null, () {}),
-                    _ListItem(Icons.policy_outlined, 'Privacy Policy', null, () {}),
+                    _ListItem(HugeIcons.strokeRoundedHelpCircle, 'Help Center', null, () {}),
+                    _ListItem(HugeIcons.strokeRoundedCourtLaw, 'Terms of Service', null, () {}),
+                    _ListItem(HugeIcons.strokeRoundedFile01, 'Privacy Policy', null, () {}),
                   ]),
                   const SizedBox(height: 22),
 
@@ -362,7 +363,7 @@ class _ListCard extends StatelessWidget {
             ),
             const SizedBox(width: 6),
           ],
-          const Icon(Icons.chevron_right_rounded, size: 18, color: kMutedFg),
+          const Icon(HugeIcons.strokeRoundedArrowRight01, size: 18, color: kMutedFg),
         ]),
         onTap: e.value.onTap,
         dense: true,

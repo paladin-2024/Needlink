@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
@@ -19,10 +20,10 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
   String? _error;
 
   static const _docTypes = [
-    (Icons.description_rounded, 'Certificate of Registration'),
-    (Icons.account_balance_rounded, 'Bank Account Proof'),
-    (Icons.badge_rounded, 'Director ID Copy'),
-    (Icons.business_rounded, 'Physical Address Proof'),
+    (HugeIcons.strokeRoundedFile01, 'Certificate of Registration'),
+    (HugeIcons.strokeRoundedBank, 'Bank Account Proof'),
+    (HugeIcons.strokeRoundedId, 'Director ID Copy'),
+    (HugeIcons.strokeRoundedBuilding04, 'Physical Address Proof'),
   ];
 
   @override
@@ -60,7 +61,7 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
               Container(
                 width: 80, height: 80,
                 decoration: BoxDecoration(color: kMatched.withAlpha(20), shape: BoxShape.circle),
-                child: const Icon(Icons.check_circle_rounded, size: 44, color: kMatched),
+                child: const Icon(HugeIcons.strokeRoundedCheckmarkCircle01, size: 44, color: kMatched),
               ),
               const SizedBox(height: 20),
               Text('Request Submitted', style: GoogleFonts.sora(
@@ -99,7 +100,7 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: const Icon(HugeIcons.strokeRoundedArrowLeft01),
                     onPressed: () => context.canPop() ? context.pop() : context.go('/ngo/settings'),
                     padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                   ),
@@ -128,7 +129,7 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
                 ),
                 child: Column(children: [
                   Row(children: [
-                    const Icon(Icons.verified_rounded, size: 18, color: kMatched),
+                    const Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 18, color: kMatched),
                     const SizedBox(width: 8),
                     Text('Benefits of Verification', style: GoogleFonts.sora(
                       fontSize: 14, fontWeight: FontWeight.w800, color: kMatched,
@@ -143,7 +144,7 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
                   ].map((b) => Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(children: [
-                      const Icon(Icons.check_rounded, size: 14, color: kMatched),
+                      const Icon(HugeIcons.strokeRoundedTick01, size: 14, color: kMatched),
                       const SizedBox(width: 8),
                       Text(b, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kForeground)),
                     ]),
@@ -171,7 +172,7 @@ class _VerificationRequestScreenState extends ConsumerState<VerificationRequestS
                     title: Text(e.value.$2, style: GoogleFonts.plusJakartaSans(
                       fontSize: 13, fontWeight: FontWeight.w600, color: kForeground,
                     )),
-                    trailing: const Icon(Icons.info_outline_rounded, size: 16, color: kMutedFg),
+                    trailing: const Icon(HugeIcons.strokeRoundedInformationCircle, size: 16, color: kMutedFg),
                     dense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   ),

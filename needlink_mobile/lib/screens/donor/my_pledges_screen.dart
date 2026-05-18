@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
@@ -185,7 +186,7 @@ class _PledgeCardState extends State<_PledgeCard> {
                   turns: _expanded ? 0.25 : 0,
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOutCubic,
-                  child: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF94A3B8)),
+                  child: const Icon(HugeIcons.strokeRoundedArrowRight01, size: 20, color: Color(0xFF94A3B8)),
                 ),
               ]),
             ),

@@ -20,13 +20,35 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
+    final prefs = await SharedPreferences.getInstance();
     var user = Supabase.instance.client.auth.currentUser;
 
-    // Only show the full splash animation on first launch (no active session).
-    if (user == null) {
-      await Future.delayed(const Duration(milliseconds: 2400));
-      if (!mounted) return;
+    // Already signed in — navigate instantly with cached role, then verify
+    // from DB in background and redirect if the role has changed.
+    if (user != null) {
+      final cachedRole = prefs.getString('cached_role');
+      if (cachedRole != null && mounted) {
+        context.go(cachedRole == 'ngo_admin' ? '/ngo' : '/donor');
+        // Refresh cache in background — corrects any stale role silently.
+        Supabase.instance.client
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle()
+            .then((data) async {
+          final freshRole = data?['role'] as String? ?? cachedRole;
+          await prefs.setString('cached_role', freshRole);
+          if (freshRole != cachedRole && mounted) {
+            context.go(freshRole == 'ngo_admin' ? '/ngo' : '/donor');
+          }
+        });
+        return;
+      }
     }
+
+    // No active session — show full splash animation then resolve auth.
+    await Future.delayed(const Duration(milliseconds: 2400));
+    if (!mounted) return;
 
     if (user == null) {
       final completer = Completer<void>();
@@ -47,7 +69,6 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (user == null) {
-      final prefs = await SharedPreferences.getInstance();
       final onboardingDone = prefs.getBool('onboarding_done') ?? false;
       if (mounted) context.go(onboardingDone ? '/login' : '/onboarding');
       return;
@@ -63,7 +84,6 @@ class _SplashScreenState extends State<SplashScreen> {
       // First OAuth sign-in — no profile row exists yet. Create one now using
       // the role the user selected in the register screen (stored before OAuth
       // opened the browser), or default to 'donor'.
-      final prefs = await SharedPreferences.getInstance();
       final role = prefs.getString('pending_oauth_role') ?? 'donor';
       final name = (user.userMetadata?['full_name'] as String?)
           ?? (user.userMetadata?['name'] as String?)
@@ -76,7 +96,9 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     if (!mounted) return;
-    context.go(profileData['role'] == 'ngo_admin' ? '/ngo' : '/donor');
+    final role = profileData['role'] as String? ?? 'donor';
+    await prefs.setString('cached_role', role);
+    context.go(role == 'ngo_admin' ? '/ngo' : '/donor');
   }
 
   @override

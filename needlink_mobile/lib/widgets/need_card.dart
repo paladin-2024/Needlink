@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models.dart';
 import '../theme.dart';
@@ -12,11 +13,11 @@ class NeedCard extends ConsumerWidget {
   final VoidCallback onTap;
   const NeedCard({super.key, required this.need, required this.onTap});
 
-  static const _categoryIcons = {
-    'food': Icons.restaurant_rounded,
-    'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded,
-    'supplies': Icons.school_rounded,
+  static const _categoryHugeIcons = {
+    'food': HugeIcons.strokeRoundedRestaurant01,
+    'clothing': HugeIcons.strokeRoundedTShirt,
+    'medicine': HugeIcons.strokeRoundedMedicine01,
+    'supplies': HugeIcons.strokeRoundedSchool,
   };
 
   static const _categoryColors = {
@@ -86,8 +87,8 @@ class NeedCard extends ConsumerWidget {
                     color: Colors.white.withAlpha(20),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    _categoryIcons[need.category] ?? Icons.inventory_2_rounded,
+                  child: HugeIcon(
+                    icon: _categoryHugeIcons[need.category] ?? HugeIcons.strokeRoundedPackage,
                     size: 28, color: Colors.white,
                   ),
                 )),
@@ -148,14 +149,14 @@ class NeedCard extends ConsumerWidget {
 
               Row(children: [
                 if (need.ngo?.location != null) ...[
-                  const Icon(Icons.location_on_outlined, size: 13, color: kMutedFg),
+                  HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 13, color: kMutedFg),
                   const SizedBox(width: 3),
                   Flexible(child: Text(need.ngo!.location,
                     style: const TextStyle(fontSize: 12, color: kMutedFg),
                     maxLines: 1, overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 8),
                 ],
-                const Icon(Icons.calendar_today_outlined, size: 12, color: kMutedFg),
+                HugeIcon(icon: HugeIcons.strokeRoundedCalendar01, size: 12, color: kMutedFg),
                 const SizedBox(width: 3),
                 Text('By ${need.deadline}', style: const TextStyle(fontSize: 12, color: kMutedFg)),
                 const Spacer(),
@@ -237,8 +238,8 @@ class _SaveButtonState extends State<_SaveButton> with SingleTickerProviderState
           color: _saved ? const Color(0xFFDC2626).withAlpha(20) : Colors.white.withAlpha(30),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          _saved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedFavourite,
           size: 17,
           color: _saved ? const Color(0xFFDC2626) : Colors.white70,
         ),
@@ -267,7 +268,7 @@ class _StatusBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(color: kPrimary, borderRadius: BorderRadius.circular(20)),
         child: Row(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.star_rounded, size: 11, color: Colors.white),
+          HugeIcon(icon: HugeIcons.strokeRoundedStar, size: 11, color: Colors.white),
           SizedBox(width: 3),
           Text('FEATURED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
         ]),
@@ -278,7 +279,7 @@ class _StatusBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(color: kUrgent, borderRadius: BorderRadius.circular(20)),
         child: Row(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.priority_high_rounded, size: 11, color: Colors.white),
+          HugeIcon(icon: HugeIcons.strokeRoundedAlert01, size: 11, color: Colors.white),
           SizedBox(width: 3),
           Text('URGENT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
         ]),
@@ -307,7 +308,7 @@ class _PledgeNowBtn extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(color: kPrimary, borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: const [
-        Icon(Icons.volunteer_activism, size: 13, color: Colors.white),
+        HugeIcon(icon: HugeIcons.strokeRoundedCharity, size: 13, color: Colors.white),
         SizedBox(width: 5),
         Text('Pledge Now', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
       ]),

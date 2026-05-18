@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../providers.dart';
@@ -25,7 +26,7 @@ class NotificationsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
                 child: Row(children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: const Icon(HugeIcons.strokeRoundedArrowLeft01),
                     onPressed: () => context.canPop() ? context.pop() : context.go('/donor'),
                     padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                   ),
@@ -61,7 +62,7 @@ class NotificationsScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: kPrimary.withAlpha(15), shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.notifications_none_rounded, size: 36, color: kPrimary),
+                      child: const Icon(HugeIcons.strokeRoundedNotification01, size: 36, color: kPrimary),
                     ),
                     const SizedBox(height: 16),
                     Text('All caught up', style: GoogleFonts.sora(
@@ -110,10 +111,10 @@ class _NotificationTile extends StatelessWidget {
   const _NotificationTile({required this.notif, required this.onTap});
 
   static const _typeConfig = {
-    'pledge_update': (Icons.volunteer_activism_outlined, kPrimary),
-    'new_need': (Icons.inventory_2_outlined, Color(0xFF7C3AED)),
-    'system': (Icons.info_outline_rounded, kMutedFg),
-    'delivery': (Icons.local_shipping_outlined, kMatched),
+    'pledge_update': (HugeIcons.strokeRoundedCharity, kPrimary),
+    'new_need': (HugeIcons.strokeRoundedPackage, Color(0xFF7C3AED)),
+    'system': (HugeIcons.strokeRoundedInformationCircle, kMutedFg),
+    'delivery': (HugeIcons.strokeRoundedTruck, kMatched),
   };
 
   @override

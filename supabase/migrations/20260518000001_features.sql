@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.saved_needs (
   UNIQUE (donor_id, need_id)
 );
 
+
 ALTER TABLE public.saved_needs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "saved_needs_select" ON public.saved_needs FOR SELECT

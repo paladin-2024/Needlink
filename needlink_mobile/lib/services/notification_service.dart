@@ -28,6 +28,7 @@ class NotificationService {
     _listenTaps();
     await _checkInitialMessage();
     _listenAuthForToken();
+    listenRealtimeNotifications();
   }
 
   // ── Local notifications setup ─────────────────────────────────────────────
@@ -169,12 +170,55 @@ class NotificationService {
     }
   }
 
+  // ── Realtime in-app → local banner ──────────────────────────────────────
+  // Shows a local notification when a new row arrives in the notifications
+  // table while the app is in the foreground.
+
+  static void listenRealtimeNotifications() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    Supabase.instance.client
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', user.id)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .listen((rows) {
+      if (rows.isEmpty) return;
+      final row = rows.first;
+      final isRead = row['read'] as bool? ?? true;
+      if (isRead) return;
+
+      final title = row['title'] as String? ?? 'NeedLink';
+      final body = row['body'] as String? ?? '';
+      final type = row['data']?['type'] as String? ?? row['type'] as String? ?? '';
+      final pledgeId = row['data']?['pledge_id'] as String?;
+
+      _fln.show(
+        row['id'].hashCode,
+        title,
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId, _channelName,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+        payload: pledgeId != null ? '$type:$pledgeId' : type,
+      );
+    });
+  }
+
   // ── Auto-save token on sign-in ────────────────────────────────────────────
 
   static void _listenAuthForToken() {
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.event == AuthChangeEvent.signedIn) {
         saveToken();
+        listenRealtimeNotifications();
       }
     });
   }

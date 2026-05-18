@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,9 +77,11 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
     'food': Color(0xFFEA580C), 'clothing': Color(0xFF7C3AED),
     'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
   };
-  static const _catIcons = {
-    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+  static const _catHugeIcons = {
+    'food': HugeIcons.strokeRoundedRestaurant01,
+    'clothing': HugeIcons.strokeRoundedTShirt,
+    'medicine': HugeIcons.strokeRoundedMedicine01,
+    'supplies': HugeIcons.strokeRoundedSchool,
   };
 
   static const _shadow = [
@@ -95,7 +98,7 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
     final remaining = need.remaining;
     final isClosed = need.status == 'matched' || need.status == 'closed' || remaining <= 0;
     final catColor = _catColors[need.category] ?? kPrimary;
-    final catIcon = _catIcons[need.category] ?? Icons.inventory_2_rounded;
+    final catIcon = _catHugeIcons[need.category] ?? HugeIcons.strokeRoundedPackage;
 
     return Scaffold(
       body: Column(children: [
@@ -116,14 +119,14 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+                      icon: const Icon(HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 22),
                       onPressed: () => context.canPop() ? context.pop() : context.go('/donor'),
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(),
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+                      icon: const Icon(HugeIcons.strokeRoundedShare01, color: Colors.white, size: 22),
                       onPressed: () {
                         final text = '${need.itemName} — ${need.ngo?.name ?? 'NeedLink'} needs your help!\n'
                             '${need.quantityPledged} of ${need.quantityNeeded} units pledged so far.\n'
@@ -220,7 +223,7 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                       fontWeight: FontWeight.w700, fontSize: 14, color: kForeground,
                     )),
                     Row(children: [
-                      const Icon(Icons.location_on_outlined, size: 13, color: kMutedFg),
+                      const Icon(HugeIcons.strokeRoundedLocation01, size: 13, color: kMutedFg),
                       const SizedBox(width: 3),
                       Text(need.ngo!.location, style: const TextStyle(fontSize: 12, color: kMutedFg)),
                     ]),
@@ -232,7 +235,7 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                         color: kMatched.withAlpha(20), borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                        Icon(Icons.verified_rounded, size: 12, color: kMatched),
+                        Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 12, color: kMatched),
                         SizedBox(width: 4),
                         Text('Verified', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: kMatched)),
                       ]),
@@ -315,12 +318,12 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
                 border: Border.all(color: kBorder), boxShadow: _shadow,
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _InfoRow(Icons.inventory_2_outlined, 'Still needed', '$remaining units'),
+                _InfoRow(HugeIcons.strokeRoundedPackage, 'Still needed', '$remaining units'),
                 const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, color: kBorder)),
-                _InfoRow(Icons.calendar_today_outlined, 'Deadline', need.deadline),
+                _InfoRow(HugeIcons.strokeRoundedCalendar01, 'Deadline', need.deadline),
                 const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, color: kBorder)),
                 _InfoRow(
-                  Icons.category_outlined, 'Category',
+                  HugeIcons.strokeRoundedGrid, 'Category',
                   need.category[0].toUpperCase() + need.category.substring(1),
                 ),
               ]),
@@ -430,7 +433,7 @@ class _PledgeSheet extends StatelessWidget {
               color: quantity > 1 ? kPrimary.withAlpha(20) : kMuted,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.remove_rounded, size: 18, color: quantity > 1 ? kPrimary : kMutedFg),
+            child: Icon(HugeIcons.strokeRoundedMinusSign, size: 18, color: quantity > 1 ? kPrimary : kMutedFg),
           ),
         ),
         Padding(
@@ -442,7 +445,7 @@ class _PledgeSheet extends StatelessWidget {
           child: Container(
             width: 32, height: 32,
             decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.add_rounded, size: 18, color: kPrimary),
+            child: const Icon(HugeIcons.strokeRoundedAdd01, size: 18, color: kPrimary),
           ),
         ),
       ]),
@@ -470,7 +473,7 @@ class _PledgeSheet extends StatelessWidget {
             border: Border.all(color: deliveryDate != null ? kPrimary : kBorder),
           ),
           child: Row(children: [
-            Icon(Icons.calendar_today_outlined, size: 16, color: deliveryDate != null ? kPrimary : kMutedFg),
+            Icon(HugeIcons.strokeRoundedCalendar01, size: 16, color: deliveryDate != null ? kPrimary : kMutedFg),
             const SizedBox(width: 10),
             Text(
               deliveryDate != null ? DateFormat('MMM d, yyyy').format(deliveryDate!) : 'Select delivery date',

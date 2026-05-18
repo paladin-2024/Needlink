@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme.dart';
@@ -75,6 +76,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           'location': _ngoLocCtrl.text.trim(), 'contact_email': _emailCtrl.text.trim(),
         });
       }
+      if (!mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_role', _role);
       if (!mounted) return;
       context.go(_role == 'ngo_admin' ? '/ngo' : '/donor');
     } on AuthException catch (e) {
@@ -167,14 +171,14 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                               Row(children: [
                                 Expanded(child: _RoleCard(
                                   value: 'donor', selected: _role,
-                                  icon: Icons.volunteer_activism_outlined,
+                                  icon: HugeIcons.strokeRoundedCharity,
                                   title: 'Donor', desc: 'Give items to NGOs',
                                   onTap: (v) => setState(() => _role = v),
                                 )),
                                 const SizedBox(width: 12),
                                 Expanded(child: _RoleCard(
                                   value: 'ngo_admin', selected: _role,
-                                  icon: Icons.business_outlined,
+                                  icon: HugeIcons.strokeRoundedBuilding04,
                                   title: 'NGO Admin', desc: 'Receive & manage donations',
                                   onTap: (v) => setState(() => _role = v),
                                 )),
@@ -223,24 +227,24 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                               ]),
                               const SizedBox(height: 20),
 
-                              AuthField(controller: _nameCtrl, label: 'Full name', icon: Icons.person_outline_rounded),
+                              AuthField(controller: _nameCtrl, label: 'Full name', icon: HugeIcons.strokeRoundedUser),
                               const SizedBox(height: 14),
                               AuthField(
                                 controller: _emailCtrl, label: 'Email address',
-                                icon: Icons.mail_outline_rounded, keyboardType: TextInputType.emailAddress, autocorrect: false,
+                                icon: HugeIcons.strokeRoundedMail01, keyboardType: TextInputType.emailAddress, autocorrect: false,
                               ),
                               const SizedBox(height: 14),
-                              AuthField(controller: _phoneCtrl, label: 'Phone (optional)', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+                              AuthField(controller: _phoneCtrl, label: 'Phone (optional)', icon: HugeIcons.strokeRoundedCall, keyboardType: TextInputType.phone),
                               const SizedBox(height: 14),
                               AuthField(
                                 controller: _passCtrl, label: 'Password',
-                                icon: Icons.lock_outline_rounded, obscureText: !_showPass,
+                                icon: HugeIcons.strokeRoundedLock, obscureText: !_showPass,
                                 suffix: GestureDetector(
                                   onTap: () => setState(() => _showPass = !_showPass),
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
                                     child: Icon(
-                                      _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      _showPass ? HugeIcons.strokeRoundedViewOffSlash : HugeIcons.strokeRoundedView,
                                       size: 20, color: const Color(0xFF94A3B8),
                                     ),
                                   ),
@@ -356,9 +360,9 @@ class _NgoSection extends StatelessWidget {
         fontSize: 10, fontWeight: FontWeight.bold, color: kPrimary, letterSpacing: 1.5,
       )),
       const SizedBox(height: 14),
-      AuthField(controller: nameCtrl, label: 'NGO name', icon: Icons.business_outlined),
+      AuthField(controller: nameCtrl, label: 'NGO name', icon: HugeIcons.strokeRoundedBuilding04),
       const SizedBox(height: 14),
-      AuthField(controller: locCtrl, label: 'District / location', icon: Icons.location_on_outlined),
+      AuthField(controller: locCtrl, label: 'District / location', icon: HugeIcons.strokeRoundedLocation01),
     ]),
   );
 }

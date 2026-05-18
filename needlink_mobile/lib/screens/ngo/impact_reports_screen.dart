@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../providers.dart';
 import '../../theme.dart';
 
@@ -12,8 +13,8 @@ class ImpactReportsScreen extends ConsumerWidget {
     'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
   };
   static const _catIcons = {
-    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+    'food': HugeIcons.strokeRoundedRestaurant01, 'clothing': HugeIcons.strokeRoundedTShirt,
+    'medicine': HugeIcons.strokeRoundedMedicine01, 'supplies': HugeIcons.strokeRoundedSchool,
   };
 
   static const _shadow = [
@@ -28,9 +29,9 @@ class ImpactReportsScreen extends ConsumerWidget {
   ];
 
   static const _reports = [
-    (Icons.description_rounded, 'Q3 Donation Summary', 'Oct 2024', '2.4 MB'),
-    (Icons.school_rounded, 'Education Impact Report', 'Sep 2024', '1.8 MB'),
-    (Icons.health_and_safety_rounded, 'Health Outreach Data', 'Aug 2024', '3.1 MB'),
+    (HugeIcons.strokeRoundedFile01, 'Q3 Donation Summary', 'Oct 2024', '2.4 MB'),
+    (HugeIcons.strokeRoundedSchool, 'Education Impact Report', 'Sep 2024', '1.8 MB'),
+    (HugeIcons.strokeRoundedFirstAidKit, 'Health Outreach Data', 'Aug 2024', '3.1 MB'),
   ];
 
   @override
@@ -91,7 +92,7 @@ class ImpactReportsScreen extends ConsumerWidget {
                       ...cats.entries.map((e) => _CategoryRow(
                         category: e.key, count: e.value, total: totalNeeds,
                         color: _catColors[e.key] ?? kPrimary,
-                        icon: _catIcons[e.key] ?? Icons.inventory_2_rounded,
+                        icon: _catIcons[e.key] ?? HugeIcons.strokeRoundedPackage,
                         shadow: _shadow,
                       )),
                       const SizedBox(height: 24),
@@ -234,7 +235,7 @@ class _StoryCard extends StatelessWidget {
       Container(
         width: 32, height: 32,
         decoration: BoxDecoration(color: kPrimary.withAlpha(20), shape: BoxShape.circle),
-        child: const Icon(Icons.format_quote_rounded, size: 16, color: kPrimary),
+        child: const Icon(HugeIcons.strokeRoundedQuoteDown, size: 16, color: kPrimary),
       ),
       const SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

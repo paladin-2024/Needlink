@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
@@ -216,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                     ),
                                     if (!isLast) ...[
                                       const SizedBox(width: 8),
-                                      const Icon(Icons.arrow_forward_rounded,
+                                      const Icon(HugeIcons.strokeRoundedArrowRight01,
                                           color: Colors.white, size: 18),
                                     ],
                                   ],

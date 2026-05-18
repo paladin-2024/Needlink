@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
@@ -80,7 +81,7 @@ class NgoHomeScreen extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                    const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 15, color: Colors.white),
                                     const SizedBox(width: 5),
                                     Text('Post Need', style: GoogleFonts.plusJakartaSans(
                                       color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700,
@@ -472,7 +473,7 @@ class _ActiveNeedTile extends StatelessWidget {
                         onTap: () => context.push('/ngo/needs/new/${need.id}'),
                         child: Tooltip(
                           message: 'Reuse as template',
-                          child: Icon(Icons.copy_rounded, size: 14, color: kMutedFg),
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 14, color: kMutedFg),
                         ),
                       ),
                     ]),

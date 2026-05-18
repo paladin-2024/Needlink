@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models.dart';
@@ -57,7 +58,7 @@ class DonorProfileScreen extends ConsumerWidget {
                               const Spacer(),
                               Stack(alignment: Alignment.center, children: [
                               IconButton(
-                                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                                icon: const Icon(HugeIcons.strokeRoundedNotification01, color: Colors.white, size: 22),
                                 onPressed: () => context.push('/donor/notifications'),
                                 padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                               ),
@@ -92,7 +93,7 @@ class DonorProfileScreen extends ConsumerWidget {
                               Positioned(bottom: 2, right: 2, child: Container(
                                 width: 22, height: 22,
                                 decoration: const BoxDecoration(color: kMatched, shape: BoxShape.circle),
-                                child: const Icon(Icons.verified_rounded, size: 13, color: Colors.white),
+                                child: const Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 13, color: Colors.white),
                               )),
                             ]),
                             const SizedBox(height: 10),
@@ -129,7 +130,7 @@ class DonorProfileScreen extends ConsumerWidget {
                                   onSaved: () => ref.invalidate(profileProvider),
                                 ),
                               ) : null,
-                              icon: const Icon(Icons.edit_outlined, size: 15, color: Colors.white),
+                              icon: const Icon(HugeIcons.strokeRoundedPencilEdit01, size: 15, color: Colors.white),
                               label: Text('Edit Profile', style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12, color: Colors.white,
                               )),
@@ -152,11 +153,11 @@ class DonorProfileScreen extends ConsumerWidget {
 
                     // Stats tiles
                     Row(children: [
-                      _StatTile('${pledges.length}', 'Total\nPledges', Icons.volunteer_activism, kPrimary),
+                      _StatTile('${pledges.length}', 'Total\nPledges', HugeIcons.strokeRoundedCharity, kPrimary),
                       const SizedBox(width: 10),
-                      _StatTile('$totalItems', 'Items\nGiven', Icons.inventory_2_rounded, kAccent),
+                      _StatTile('$totalItems', 'Items\nGiven', HugeIcons.strokeRoundedPackage, kAccent),
                       const SizedBox(width: 10),
-                      _StatTile('$ngoIds', 'NGOs\nSupported', Icons.corporate_fare_rounded, kMatched),
+                      _StatTile('$ngoIds', 'NGOs\nSupported', HugeIcons.strokeRoundedBuilding02, kMatched),
                     ]),
                     const SizedBox(height: 22),
 
@@ -184,9 +185,9 @@ class DonorProfileScreen extends ConsumerWidget {
                     )),
                     const SizedBox(height: 10),
                     _SettingsGroup(shadow: _shadow, items: [
-                      _SettingsTile(Icons.favorite_outline_rounded, 'Saved Needs', () => context.push('/donor/saved')),
-                      _SettingsTile(Icons.notifications_none_rounded, 'Notifications', () => context.push('/donor/notifications')),
-                      _SettingsTile(Icons.map_outlined, 'NGO Map', () => context.push('/donor/map')),
+                      _SettingsTile(HugeIcons.strokeRoundedFavourite, 'Saved Needs', () => context.push('/donor/saved')),
+                      _SettingsTile(HugeIcons.strokeRoundedNotification01, 'Notifications', () => context.push('/donor/notifications')),
+                      _SettingsTile(HugeIcons.strokeRoundedMaps, 'NGO Map', () => context.push('/donor/map')),
                     ]),
                     const SizedBox(height: 12),
 
@@ -196,20 +197,20 @@ class DonorProfileScreen extends ConsumerWidget {
                     )),
                     const SizedBox(height: 10),
                     _SettingsGroup(shadow: _shadow, items: [
-                      _SettingsTile(Icons.notifications_outlined, 'Notification Preferences', () {
+                      _SettingsTile(HugeIcons.strokeRoundedNotification01, 'Notification Preferences', () {
                         showModalBottomSheet(
                           context: context, isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (_) => const _NotifPrefsSheet(),
                         );
                       }),
-                      _SettingsTile(Icons.visibility_outlined, 'Profile Visibility', () {
+                      _SettingsTile(HugeIcons.strokeRoundedView, 'Profile Visibility', () {
                         showModalBottomSheet(
                           context: context, backgroundColor: Colors.transparent,
                           builder: (_) => const _VisibilitySheet(),
                         );
                       }),
-                      _SettingsTile(Icons.lock_outline_rounded, 'Privacy & Safety', () {
+                      _SettingsTile(HugeIcons.strokeRoundedLock, 'Privacy & Safety', () {
                         showModalBottomSheet(
                           context: context, backgroundColor: Colors.transparent,
                           builder: (_) => const _PrivacySheet(),
@@ -218,7 +219,7 @@ class DonorProfileScreen extends ConsumerWidget {
                     ]),
                     const SizedBox(height: 12),
                     _SettingsGroup(shadow: _shadow, items: [
-                      _SettingsTile(Icons.logout_rounded, 'Sign Out', () async {
+                      _SettingsTile(HugeIcons.strokeRoundedLogout01, 'Sign Out', () async {
                         await Supabase.instance.client.auth.signOut();
                         if (context.mounted) context.go('/login');
                       }, danger: true),
@@ -299,7 +300,7 @@ class _ContributionTile extends StatelessWidget {
         Container(
           width: 36, height: 36,
           decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-          child: const Icon(Icons.volunteer_activism, size: 18, color: kPrimary),
+          child: const Icon(HugeIcons.strokeRoundedCharity, size: 18, color: kPrimary),
         ),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -354,7 +355,7 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) => ListTile(
     leading: Icon(icon, size: 20, color: danger ? const Color(0xFFDC2626) : kMutedFg),
     title: Text(label, style: TextStyle(fontSize: 14, color: danger ? const Color(0xFFDC2626) : kForeground)),
-    trailing: const Icon(Icons.chevron_right_rounded, size: 18, color: kMutedFg),
+    trailing: const Icon(HugeIcons.strokeRoundedArrowRight01, size: 18, color: kMutedFg),
     onTap: onTap,
     dense: true,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -469,13 +470,13 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
         ],
         TextField(
           controller: _nameCtrl,
-          decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline_rounded)),
+          decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(HugeIcons.strokeRoundedUser)),
           textCapitalization: TextCapitalization.words,
         ),
         const SizedBox(height: 14),
         TextField(
           controller: _phoneCtrl,
-          decoration: const InputDecoration(labelText: 'Phone (optional)', prefixIcon: Icon(Icons.phone_outlined)),
+          decoration: const InputDecoration(labelText: 'Phone (optional)', prefixIcon: Icon(HugeIcons.strokeRoundedCall)),
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 24),
@@ -552,15 +553,15 @@ class _NotifPrefsSheetState extends State<_NotifPrefsSheet> {
               color: kSurface, borderRadius: BorderRadius.circular(14), border: Border.all(color: kBorder),
             ),
             child: Column(children: [
-              _NotifToggle(icon: Icons.inventory_2_outlined, title: 'New Donation Needs',
+              _NotifToggle(icon: HugeIcons.strokeRoundedPackage, title: 'New Donation Needs',
                 subtitle: 'When NGOs post items you can give', value: _newNeeds,
                 onChanged: (v) { setState(() => _newNeeds = v); _set('notif_new_needs', v); }),
               const Divider(height: 1, color: kBorder),
-              _NotifToggle(icon: Icons.volunteer_activism_outlined, title: 'Pledge Updates',
+              _NotifToggle(icon: HugeIcons.strokeRoundedCharity, title: 'Pledge Updates',
                 subtitle: 'When your pledges are confirmed or rejected', value: _pledgeUpdates,
                 onChanged: (v) { setState(() => _pledgeUpdates = v); _set('notif_pledge_updates', v); }),
               const Divider(height: 1, color: kBorder),
-              _NotifToggle(icon: Icons.campaign_outlined, title: 'NGO Announcements',
+              _NotifToggle(icon: HugeIcons.strokeRoundedMegaphone01, title: 'NGO Announcements',
                 subtitle: 'Updates from organisations you support', value: _ngoAnnouncements,
                 onChanged: (v) { setState(() => _ngoAnnouncements = v); _set('notif_ngo_announcements', v); }),
             ]),
@@ -679,15 +680,15 @@ class _PrivacySheet extends StatelessWidget {
         const SizedBox(height: 16),
         Text('Privacy & Safety', style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w800, color: kForeground)),
         const SizedBox(height: 20),
-        _PrivacyItem(icon: Icons.shield_rounded, iconColor: kMatched,
+        _PrivacyItem(icon: HugeIcons.strokeRoundedShield01, iconColor: kMatched,
           title: 'Encryption',
           body: 'All personal data is encrypted in transit and at rest using industry-standard TLS.'),
         const SizedBox(height: 10),
-        _PrivacyItem(icon: Icons.lock_outline_rounded, iconColor: kPrimary,
+        _PrivacyItem(icon: HugeIcons.strokeRoundedLock, iconColor: kPrimary,
           title: 'Data We Collect',
           body: 'Name, email, phone, and donation history only. We never sell your data or share it outside NeedLink operations.'),
         const SizedBox(height: 10),
-        _PrivacyItem(icon: Icons.delete_forever_rounded, iconColor: const Color(0xFFDC2626),
+        _PrivacyItem(icon: HugeIcons.strokeRoundedDelete02, iconColor: const Color(0xFFDC2626),
           title: 'Delete My Data',
           body: 'To request full account deletion and data removal, contact support@needlink.app.'),
       ]),

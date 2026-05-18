@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../providers.dart';
@@ -90,7 +91,7 @@ class _NgoMapScreenState extends ConsumerState<NgoMapScreen> {
                     boxShadow: [BoxShadow(color: Colors.black.withAlpha(25), blurRadius: 8)],
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: kForeground),
+                    icon: const Icon(HugeIcons.strokeRoundedArrowLeft01, color: kForeground),
                     onPressed: () => context.canPop() ? context.pop() : context.go('/donor'),
                   ),
                 ),
@@ -181,10 +182,10 @@ class _NgoBottomCard extends StatelessWidget {
             fontSize: 15, fontWeight: FontWeight.w800, color: kForeground,
           ), maxLines: 1, overflow: TextOverflow.ellipsis)),
           if (ngo.verified)
-            const Icon(Icons.verified_rounded, size: 16, color: kMatched),
+            const Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 16, color: kMatched),
         ]),
         Row(children: [
-          const Icon(Icons.location_on_outlined, size: 13, color: kMutedFg),
+          const Icon(HugeIcons.strokeRoundedLocation01, size: 13, color: kMutedFg),
           const SizedBox(width: 3),
           Expanded(child: Text(ngo.location, style: GoogleFonts.plusJakartaSans(
             fontSize: 12, color: kMutedFg,
@@ -198,7 +199,7 @@ class _NgoBottomCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(color: kBackground, shape: BoxShape.circle),
-            child: const Icon(Icons.close_rounded, size: 16, color: kMutedFg),
+            child: const Icon(HugeIcons.strokeRoundedCancel01, size: 16, color: kMutedFg),
           ),
         ),
         const SizedBox(height: 8),

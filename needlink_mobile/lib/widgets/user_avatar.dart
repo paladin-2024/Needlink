@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../theme.dart';
 
 /// Circle avatar that shows, in priority order:
@@ -59,7 +60,7 @@ class UserAvatar extends StatelessWidget {
               width: radius * 0.65,
               height: radius * 0.65,
               decoration: const BoxDecoration(color: kPrimary, shape: BoxShape.circle),
-              child: Icon(Icons.camera_alt_rounded, size: radius * 0.35, color: Colors.white),
+              child: Icon(HugeIcons.strokeRoundedCamera01, size: radius * 0.35, color: Colors.white),
             ),
           ),
         ],

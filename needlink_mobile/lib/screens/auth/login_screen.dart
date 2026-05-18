@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme.dart';
 import '../../widgets/auth_widgets.dart';
@@ -51,7 +53,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       final profile = await Supabase.instance.client
           .from('profiles').select('role').eq('id', res.user!.id).maybeSingle();
       if (!mounted) return;
-      context.go(profile?['role'] == 'ngo_admin' ? '/ngo' : '/donor');
+      final role = profile?['role'] as String? ?? 'donor';
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_role', role);
+      if (!mounted) return;
+      context.go(role == 'ngo_admin' ? '/ngo' : '/donor');
     } on AuthException catch (e) {
       setState(() { _error = e.message; _loading = false; });
     } catch (e) {
@@ -176,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               AuthField(
                                 controller: _emailCtrl,
                                 label: 'Email address',
-                                icon: Icons.mail_outline_rounded,
+                                icon: HugeIcons.strokeRoundedMail01,
                                 keyboardType: TextInputType.emailAddress,
                                 autocorrect: false,
                               ),
@@ -184,14 +190,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               AuthField(
                                 controller: _passCtrl,
                                 label: 'Password',
-                                icon: Icons.lock_outline_rounded,
+                                icon: HugeIcons.strokeRoundedLock,
                                 obscureText: !_showPass,
                                 suffix: GestureDetector(
                                   onTap: () => setState(() => _showPass = !_showPass),
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
                                     child: Icon(
-                                      _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      _showPass ? HugeIcons.strokeRoundedViewOffSlash : HugeIcons.strokeRoundedView,
                                       size: 20, color: const Color(0xFF94A3B8),
                                     ),
                                   ),

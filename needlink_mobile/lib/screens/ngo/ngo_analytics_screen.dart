@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -220,7 +221,7 @@ class _NgoAnalyticsScreenState extends ConsumerState<NgoAnalyticsScreen> {
                                     style: const TextStyle(fontSize: 11, color: kMutedFg)),
                                 ])),
                                 if (e.key == 0)
-                                  const Icon(Icons.emoji_events_rounded, size: 18, color: Color(0xFFD97706)),
+                                  const Icon(HugeIcons.strokeRoundedAward01, size: 18, color: Color(0xFFD97706)),
                               ]),
                             ),
                             if (e.key < topDonors.take(5).length - 1)
@@ -329,14 +330,14 @@ class _CategoryRow extends StatelessWidget {
     'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
   };
   static const _catIcons = {
-    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+    'food': HugeIcons.strokeRoundedRestaurant01, 'clothing': HugeIcons.strokeRoundedTShirt,
+    'medicine': HugeIcons.strokeRoundedMedicine01, 'supplies': HugeIcons.strokeRoundedSchool,
   };
 
   @override
   Widget build(BuildContext context) {
     final color = _catColors[category] ?? kPrimary;
-    final icon = _catIcons[category] ?? Icons.inventory_2_rounded;
+    final icon = _catIcons[category] ?? HugeIcons.strokeRoundedPackage;
     final pct = total > 0 ? count / total : 0.0;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

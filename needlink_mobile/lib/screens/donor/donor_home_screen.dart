@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:lottie/lottie.dart';
 import '../../providers.dart';
 import '../../models.dart';
@@ -22,11 +23,11 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
   final _searchCtrl = TextEditingController();
 
   static const _categories = [
-    ('', Icons.grid_view_rounded, 'All'),
-    ('food', Icons.restaurant_rounded, 'Food'),
-    ('clothing', Icons.checkroom_rounded, 'Clothing'),
-    ('medicine', Icons.medication_rounded, 'Medicine'),
-    ('supplies', Icons.school_rounded, 'Supplies'),
+    ('', HugeIcons.strokeRoundedGrid, 'All'),
+    ('food', HugeIcons.strokeRoundedRestaurant01, 'Food'),
+    ('clothing', HugeIcons.strokeRoundedTShirt, 'Clothing'),
+    ('medicine', HugeIcons.strokeRoundedMedicine01, 'Medicine'),
+    ('supplies', HugeIcons.strokeRoundedSchool, 'Supplies'),
   ];
 
   @override
@@ -61,13 +62,13 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.map_outlined),
+                icon: const Icon(HugeIcons.strokeRoundedMaps),
                 onPressed: () => context.push('/donor/map'),
                 tooltip: 'NGO Map',
               ),
               Stack(alignment: Alignment.center, children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                  icon: const Icon(HugeIcons.strokeRoundedNotification01),
                   onPressed: () => context.push('/donor/notifications'),
                 ),
                 Consumer(builder: (ctx, watchRef, child) {
@@ -111,11 +112,11 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
                     onChanged: (v) => setState(() => _search = v),
                     decoration: InputDecoration(
                       hintText: 'Search by item or NGO…',
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                      prefixIcon: const Icon(HugeIcons.strokeRoundedSearch01, size: 20),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       suffixIcon: _search.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
+                              icon: const Icon(HugeIcons.strokeRoundedCancel01, size: 18),
                               onPressed: () { _searchCtrl.clear(); setState(() => _search = ''); },
                             )
                           : null,
@@ -135,7 +136,7 @@ class _DonorHomeScreenState extends ConsumerState<DonorHomeScreen> {
                         )),
                         const SizedBox(width: 4),
                         _FilterChip(
-                          icon: Icons.priority_high_rounded,
+                          icon: HugeIcons.strokeRoundedAlert01,
                           label: 'Urgent',
                           selected: _urgentOnly,
                           onTap: () => setState(() => _urgentOnly = !_urgentOnly),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../providers.dart';
@@ -61,8 +62,8 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
     'medicine': Color(0xFF16A34A), 'supplies': Color(0xFF0891B2),
   };
   static const _catIcons = {
-    'food': Icons.restaurant_rounded, 'clothing': Icons.checkroom_rounded,
-    'medicine': Icons.medication_rounded, 'supplies': Icons.school_rounded,
+    'food': HugeIcons.strokeRoundedRestaurant01, 'clothing': HugeIcons.strokeRoundedTShirt,
+    'medicine': HugeIcons.strokeRoundedMedicine01, 'supplies': HugeIcons.strokeRoundedSchool,
   };
   static const _catLabels = {
     'food': 'Food', 'clothing': 'Clothing', 'medicine': 'Medicine', 'supplies': 'Supplies',
@@ -99,7 +100,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
       appBar: AppBar(
         title: Text('Post a Need', style: GoogleFonts.sora(fontWeight: FontWeight.w800, fontSize: 17)),
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(HugeIcons.strokeRoundedCancel01),
           onPressed: () => context.canPop() ? context.pop() : context.go('/ngo'),
         ),
       ),
@@ -124,7 +125,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
                     border: Border.all(color: color, width: done || active ? 0 : 1.5),
                   ),
                   child: Center(child: done
-                    ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                    ? const Icon(HugeIcons.strokeRoundedTick01, size: 14, color: Colors.white)
                     : Text('${i + 1}', style: TextStyle(
                         fontSize: 12, fontWeight: FontWeight.w800,
                         color: active ? Colors.white : kMutedFg,
@@ -158,7 +159,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
             color: const Color(0xFFFEF2F2),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(children: [
-              const Icon(Icons.error_outline_rounded, size: 14, color: Color(0xFFDC2626)),
+              const Icon(HugeIcons.strokeRoundedAlertCircle, size: 14, color: Color(0xFFDC2626)),
               const SizedBox(width: 6),
               Expanded(child: Text(_error!, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626)))),
             ]),
@@ -256,7 +257,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
             border: Border.all(color: selected ? color : kBorder, width: selected ? 1.5 : 1),
           ),
           child: Column(children: [
-            Icon(_catIcons[c] ?? Icons.inventory_2_rounded, size: 20, color: selected ? color : kMutedFg),
+            Icon(_catIcons[c] ?? HugeIcons.strokeRoundedPackage, size: 20, color: selected ? color : kMutedFg),
             const SizedBox(height: 4),
             Text(_catLabels[c] ?? c, style: TextStyle(
               fontSize: 11, fontWeight: FontWeight.w700,
@@ -273,10 +274,10 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
     )),
     const SizedBox(height: 10),
     Row(children: [
-      _UrgencyChip('Normal', Icons.radio_button_unchecked_rounded, _urgency == 'normal', kPrimary,
+      _UrgencyChip('Normal', HugeIcons.strokeRoundedCircle, _urgency == 'normal', kPrimary,
         () => setState(() => _urgency = 'normal')),
       const SizedBox(width: 10),
-      _UrgencyChip('Urgent', Icons.bolt_rounded, _urgency == 'urgent', kUrgent,
+      _UrgencyChip('Urgent', HugeIcons.strokeRoundedFlash, _urgency == 'urgent', kUrgent,
         () => setState(() => _urgency = 'urgent')),
     ]),
     const SizedBox(height: 20),
@@ -324,7 +325,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
                 color: _quantity > 1 ? kPrimary.withAlpha(20) : kMuted,
                 borderRadius: BorderRadius.circular(9),
               ),
-              child: Icon(Icons.remove_rounded, size: 18, color: _quantity > 1 ? kPrimary : kMutedFg),
+              child: Icon(HugeIcons.strokeRoundedMinusSign, size: 18, color: _quantity > 1 ? kPrimary : kMutedFg),
             ),
           ),
           Padding(
@@ -338,7 +339,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
             child: Container(
               width: 36, height: 36,
               decoration: BoxDecoration(color: kPrimary.withAlpha(20), borderRadius: BorderRadius.circular(9)),
-              child: const Icon(Icons.add_rounded, size: 18, color: kPrimary),
+              child: const Icon(HugeIcons.strokeRoundedAdd01, size: 18, color: kPrimary),
             ),
           ),
         ]),
@@ -372,7 +373,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
           border: Border.all(color: _deadline != null ? kPrimary : kBorder),
         ),
         child: Row(children: [
-          Icon(Icons.calendar_today_rounded, size: 18, color: _deadline != null ? kPrimary : kMutedFg),
+          Icon(HugeIcons.strokeRoundedCalendar01, size: 18, color: _deadline != null ? kPrimary : kMutedFg),
           const SizedBox(width: 10),
           Text(
             _deadline != null ? DateFormat('MMMM d, yyyy').format(_deadline!) : 'Select a deadline',
@@ -414,7 +415,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(color: catColor.withAlpha(20), borderRadius: BorderRadius.circular(20)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(_catIcons[_category] ?? Icons.inventory_2_rounded, size: 12, color: catColor),
+                Icon(_catIcons[_category] ?? HugeIcons.strokeRoundedPackage, size: 12, color: catColor),
                 const SizedBox(width: 4),
                 Text(
                   (_catLabels[_category] ?? _category),
@@ -443,12 +444,12 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
           const SizedBox(height: 14),
           const Divider(height: 1, color: kBorder),
           const SizedBox(height: 14),
-          _ReviewRow(Icons.inventory_2_outlined, 'Quantity', '$_quantity units'),
+          _ReviewRow(HugeIcons.strokeRoundedPackage, 'Quantity', '$_quantity units'),
           const SizedBox(height: 8),
-          _ReviewRow(Icons.calendar_today_outlined, 'Deadline',
+          _ReviewRow(HugeIcons.strokeRoundedCalendar01, 'Deadline',
             _deadline != null ? DateFormat('MMMM d, yyyy').format(_deadline!) : '-'),
           const SizedBox(height: 8),
-          _ReviewRow(Icons.category_outlined, 'Category', _catLabels[_category] ?? _category),
+          _ReviewRow(HugeIcons.strokeRoundedGrid, 'Category', _catLabels[_category] ?? _category),
         ]),
       ),
       const SizedBox(height: 12),
@@ -460,7 +461,7 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
           border: Border.all(color: kPrimary.withAlpha(40)),
         ),
         child: Row(children: const [
-          Icon(Icons.info_outline_rounded, size: 16, color: kPrimary),
+          Icon(HugeIcons.strokeRoundedInformationCircle, size: 16, color: kPrimary),
           SizedBox(width: 8),
           Expanded(child: Text(
             'Once published, donors on NeedLink will see and pledge to this need.',
@@ -488,7 +489,7 @@ class _PublishedScreen extends StatelessWidget {
           Container(
             width: 80, height: 80,
             decoration: BoxDecoration(color: kMatched.withAlpha(20), shape: BoxShape.circle),
-            child: const Icon(Icons.check_circle_rounded, size: 44, color: kMatched),
+            child: const Icon(HugeIcons.strokeRoundedCheckmarkCircle01, size: 44, color: kMatched),
           ),
           const SizedBox(height: 20),
           Text('Need Published!', style: GoogleFonts.sora(

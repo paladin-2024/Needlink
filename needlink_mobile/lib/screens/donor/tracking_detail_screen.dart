@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -51,8 +52,8 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tracking Details'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.canPop() ? context.pop() : context.go('/donor/pledges')),
-        actions: [IconButton(icon: const Icon(Icons.search_rounded), onPressed: () {})],
+        leading: IconButton(icon: const Icon(HugeIcons.strokeRoundedArrowLeft01), onPressed: () => context.canPop() ? context.pop() : context.go('/donor/pledges')),
+        actions: [IconButton(icon: const Icon(HugeIcons.strokeRoundedSearch01), onPressed: () {})],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -70,7 +71,7 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
               if (ngo != null) ...[
                 const SizedBox(height: 6),
                 Row(children: [
-                  const Icon(Icons.location_on_outlined, size: 14, color: kMutedFg),
+                  const Icon(HugeIcons.strokeRoundedLocation01, size: 14, color: kMutedFg),
                   const SizedBox(width: 4),
                   Text('To: ${ngo.name}, ${ngo.location}', style: const TextStyle(fontSize: 13, color: kMutedFg)),
                 ]),
@@ -114,19 +115,19 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
                 ),
               ],
               const SizedBox(height: 12),
-              _InfoRow(Icons.qr_code_rounded, 'Pledge ID', 'NL-${widget.pledgeId.substring(0, 8).toUpperCase()}'),
+              _InfoRow(HugeIcons.strokeRoundedQrCode01, 'Pledge ID', 'NL-${widget.pledgeId.substring(0, 8).toUpperCase()}'),
               const SizedBox(height: 8),
-              _InfoRow(Icons.calendar_today_rounded, 'Delivery Date', p.deliveryDate),
+              _InfoRow(HugeIcons.strokeRoundedCalendar01, 'Delivery Date', p.deliveryDate),
               const SizedBox(height: 8),
-              _InfoRow(Icons.inventory_2_outlined, 'Quantity', '${p.quantity} units'),
+              _InfoRow(HugeIcons.strokeRoundedPackage, 'Quantity', '${p.quantity} units'),
               if (p.notes != null && p.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                _InfoRow(Icons.notes_rounded, 'Notes', p.notes!),
+                _InfoRow(HugeIcons.strokeRoundedNote01, 'Notes', p.notes!),
               ],
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () {},
-                icon: const Icon(Icons.support_agent_rounded, size: 16),
+                icon: const Icon(HugeIcons.strokeRoundedCustomerService, size: 16),
                 label: const Text('Contact Support'),
                 style: OutlinedButton.styleFrom(foregroundColor: kPrimary, side: const BorderSide(color: kPrimary)),
               ),
@@ -161,11 +162,11 @@ class _TrackingDetailScreenState extends State<TrackingDetailScreen> {
     final createdDate = DateTime.tryParse(p.createdAt);
 
     if (p.status == 'confirmed') {
-      events.add(_TimelineEvent(Icons.verified_rounded, 'Delivery Confirmed', 'NGO confirmed receipt', kMatched, true));
+      events.add(_TimelineEvent(HugeIcons.strokeRoundedCheckmarkBadge01, 'Delivery Confirmed', 'NGO confirmed receipt', kMatched, true));
     }
-    events.add(_TimelineEvent(Icons.local_shipping_rounded, 'In Transit', 'Heading to ${p.donationNeed?.ngo?.location ?? 'NGO'}', kPrimary, p.status == 'confirmed'));
-    events.add(_TimelineEvent(Icons.calendar_today_rounded, 'Pledge Scheduled', 'Delivery by ${p.deliveryDate}', const Color(0xFF7C3AED), true));
-    events.add(_TimelineEvent(Icons.verified_outlined, 'Pledge Confirmed', createdDate != null ? DateFormat('MMM d, yyyy').format(createdDate) : p.createdAt, kMatched, true));
+    events.add(_TimelineEvent(HugeIcons.strokeRoundedTruck, 'In Transit', 'Heading to ${p.donationNeed?.ngo?.location ?? 'NGO'}', kPrimary, p.status == 'confirmed'));
+    events.add(_TimelineEvent(HugeIcons.strokeRoundedCalendar01, 'Pledge Scheduled', 'Delivery by ${p.deliveryDate}', const Color(0xFF7C3AED), true));
+    events.add(_TimelineEvent(HugeIcons.strokeRoundedCheckmarkBadge01, 'Pledge Confirmed', createdDate != null ? DateFormat('MMM d, yyyy').format(createdDate) : p.createdAt, kMatched, true));
 
     return events;
   }

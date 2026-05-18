@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../theme.dart';
 
 class NLMark extends StatelessWidget {
@@ -87,7 +88,7 @@ class AuthErrorBox extends StatelessWidget {
         border: Border.all(color: const Color(0xFFFECACA)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.error_outline_rounded, size: 16, color: Color(0xFFDC2626)),
+        const Icon(HugeIcons.strokeRoundedAlertCircle, size: 16, color: Color(0xFFDC2626)),
         const SizedBox(width: 10),
         Expanded(child: Text(message, style: GoogleFonts.plusJakartaSans(
           color: const Color(0xFFDC2626), fontSize: 13,
