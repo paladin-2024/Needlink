@@ -46,25 +46,23 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     }
 
-    // No active session — show full splash animation then resolve auth.
-    await Future.delayed(const Duration(milliseconds: 2400));
-    if (!mounted) return;
-
-    if (user == null) {
-      final completer = Completer<void>();
-      late StreamSubscription<AuthState> sub;
-      sub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-        if (data.event == AuthChangeEvent.signedIn) {
-          if (!completer.isCompleted) completer.complete();
-          sub.cancel();
-        }
-      });
-      await completer.future
-          .timeout(const Duration(seconds: 3), onTimeout: () {})
-          .catchError((_) {});
-      sub.cancel();
-      user = Supabase.instance.client.auth.currentUser;
-    }
+    // Race: listen for OAuth sign-in OR wait 2400ms — whichever comes first.
+    // This lets OAuth returns (where currentUser is briefly null) skip the
+    // full animation delay instead of always waiting 2400ms then listening.
+    final completer = Completer<void>();
+    late StreamSubscription<AuthState> sub;
+    sub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.signedIn && !completer.isCompleted) {
+        completer.complete();
+        sub.cancel();
+      }
+    });
+    await Future.any([
+      completer.future,
+      Future.delayed(const Duration(milliseconds: 2400)),
+    ]).catchError((_) {});
+    sub.cancel();
+    user = Supabase.instance.client.auth.currentUser;
 
     if (!mounted) return;
 
