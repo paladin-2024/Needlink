@@ -23,8 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     var user = Supabase.instance.client.auth.currentUser;
 
-    // Already signed in — navigate instantly with cached role, then verify
-    // from DB in background and redirect if the role has changed.
+    // Fast path — already signed in with a cached role.
     if (user != null) {
       final cachedRole = prefs.getString('cached_role');
       if (cachedRole != null && mounted) {
@@ -44,31 +43,35 @@ class _SplashScreenState extends State<SplashScreen> {
         });
         return;
       }
+      // user != null but no cached_role (e.g. OAuth just completed and
+      // Supabase already processed the session before splash mounted).
+      // Skip the animation delay and fall through to role fetch below.
+    } else {
+      // user == null — cold start or OAuth tokens not yet processed.
+      // Race the auth listener against the animation delay: if signedIn
+      // fires quickly (OAuth return), we navigate immediately; otherwise
+      // the 2400ms plays out as normal for a genuine cold start.
+      final completer = Completer<void>();
+      late StreamSubscription<AuthState> sub;
+      sub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        if (data.event == AuthChangeEvent.signedIn && !completer.isCompleted) {
+          completer.complete();
+          sub.cancel();
+        }
+      });
+      await Future.any([
+        completer.future,
+        Future.delayed(const Duration(milliseconds: 2400)),
+      ]).catchError((_) {});
+      sub.cancel();
+      user = Supabase.instance.client.auth.currentUser;
     }
-
-    // Race: listen for OAuth sign-in OR wait 2400ms — whichever comes first.
-    // This lets OAuth returns (where currentUser is briefly null) skip the
-    // full animation delay instead of always waiting 2400ms then listening.
-    final completer = Completer<void>();
-    late StreamSubscription<AuthState> sub;
-    sub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (data.event == AuthChangeEvent.signedIn && !completer.isCompleted) {
-        completer.complete();
-        sub.cancel();
-      }
-    });
-    await Future.any([
-      completer.future,
-      Future.delayed(const Duration(milliseconds: 2400)),
-    ]).catchError((_) {});
-    sub.cancel();
-    user = Supabase.instance.client.auth.currentUser;
 
     if (!mounted) return;
 
     if (user == null) {
       final onboardingDone = prefs.getBool('onboarding_done') ?? false;
-      if (mounted) context.go(onboardingDone ? '/login' : '/onboarding');
+      context.go(onboardingDone ? '/login' : '/onboarding');
       return;
     }
 
@@ -79,9 +82,8 @@ class _SplashScreenState extends State<SplashScreen> {
         .maybeSingle();
 
     if (profileData == null) {
-      // First OAuth sign-in — no profile row exists yet. Create one now using
-      // the role the user selected in the register screen (stored before OAuth
-      // opened the browser), or default to 'donor'.
+      // First OAuth sign-in — no profile row yet; create it using the role
+      // stored before the browser opened, or default to 'donor'.
       final role = prefs.getString('pending_oauth_role') ?? 'donor';
       final name = (user.userMetadata?['full_name'] as String?)
           ?? (user.userMetadata?['name'] as String?)

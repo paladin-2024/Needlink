@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'screens/auth/auth_callback_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/splash/splash_screen.dart';
@@ -52,7 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final uri = state.uri;
 
       if (uri.scheme == 'io.needlink.app' || location == '/login-callback') {
-        return '/splash';
+        return '/auth-callback';
       }
 
       if (location == '/') return '/splash';
@@ -60,7 +61,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login-callback', redirect: (_, _) => '/splash'),
+      GoRoute(path: '/login-callback', redirect: (_, _) => '/auth-callback'),
+      GoRoute(path: '/auth-callback', builder: (_, _) => const AuthCallbackScreen()),
 
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
