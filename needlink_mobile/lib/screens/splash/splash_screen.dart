@@ -20,10 +20,13 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 2400));
-    if (!mounted) return;
-
     var user = Supabase.instance.client.auth.currentUser;
+
+    // Only show the full splash animation on first launch (no active session).
+    if (user == null) {
+      await Future.delayed(const Duration(milliseconds: 2400));
+      if (!mounted) return;
+    }
 
     if (user == null) {
       final completer = Completer<void>();
