@@ -11,3 +11,9 @@ supabase/.temp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Tooling
+.claude/
+.idea/
+.superpowers/
+.agents/
