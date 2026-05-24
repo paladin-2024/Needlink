@@ -5,6 +5,9 @@ needlink_mobile/android/app/google-services.json
 needlink_mobile/ios/Runner/GoogleService-Info.plist
 supabase/.env
 
+# Database dumps — contain auth tokens, never commit
+*.sql
+
 # Supabase local state
 supabase/.temp/
 

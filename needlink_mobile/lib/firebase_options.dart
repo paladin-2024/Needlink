@@ -41,48 +41,47 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAUSLt2XZiiSjDrTmzjKcbcywjmm9Arah0',
-    appId: '1:139807136480:web:3a5d7b0d47cc4faa58ce85',
-    messagingSenderId: '139807136480',
-    projectId: 'needlink-90a7c',
-    authDomain: 'needlink-90a7c.firebaseapp.com',
-    storageBucket: 'needlink-90a7c.firebasestorage.app',
-    measurementId: 'G-7R5TKQR76K',
+    apiKey: 'AIzaSyAiKiiKqKg6dliZXV2rZ-FVR1SFJa93e2k',
+    appId: '1:290021143671:web:d222ac68bdf752c4464272',
+    messagingSenderId: '290021143671',
+    projectId: 'needlink-1a854',
+    authDomain: 'needlink-1a854.firebaseapp.com',
+    storageBucket: 'needlink-1a854.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCfvc7OveIskOKc_s2DAe4_5mmMXQL7NHE',
-    appId: '1:139807136480:android:a98b38a59c014a5a58ce85',
-    messagingSenderId: '139807136480',
-    projectId: 'needlink-90a7c',
-    storageBucket: 'needlink-90a7c.firebasestorage.app',
+    apiKey: 'AIzaSyAOiNTYFqBpZ-HcJJ1Q6bGEAat08a2kw0c',
+    appId: '1:290021143671:android:fd1d1e9037f2d6f5464272',
+    messagingSenderId: '290021143671',
+    projectId: 'needlink-1a854',
+    storageBucket: 'needlink-1a854.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDlVFBYBQbNo7kU8LFV3yy_zovH5_Ow-uY',
-    appId: '1:139807136480:ios:eac6e9c33ce1a39d58ce85',
-    messagingSenderId: '139807136480',
-    projectId: 'needlink-90a7c',
-    storageBucket: 'needlink-90a7c.firebasestorage.app',
+    apiKey: 'AIzaSyASiLi415ljtU30pdpBmHgkv18UfZVmKfY',
+    appId: '1:290021143671:ios:ecf8fdd7ae9cd9ae464272',
+    messagingSenderId: '290021143671',
+    projectId: 'needlink-1a854',
+    storageBucket: 'needlink-1a854.firebasestorage.app',
     iosBundleId: 'com.needlink.needlink',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDlVFBYBQbNo7kU8LFV3yy_zovH5_Ow-uY',
-    appId: '1:139807136480:ios:eac6e9c33ce1a39d58ce85',
-    messagingSenderId: '139807136480',
-    projectId: 'needlink-90a7c',
-    storageBucket: 'needlink-90a7c.firebasestorage.app',
+    apiKey: 'AIzaSyASiLi415ljtU30pdpBmHgkv18UfZVmKfY',
+    appId: '1:290021143671:ios:ecf8fdd7ae9cd9ae464272',
+    messagingSenderId: '290021143671',
+    projectId: 'needlink-1a854',
+    storageBucket: 'needlink-1a854.firebasestorage.app',
     iosBundleId: 'com.needlink.needlink',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAUSLt2XZiiSjDrTmzjKcbcywjmm9Arah0',
-    appId: '1:139807136480:web:9c8441e78e57cf0c58ce85',
-    messagingSenderId: '139807136480',
-    projectId: 'needlink-90a7c',
-    authDomain: 'needlink-90a7c.firebaseapp.com',
-    storageBucket: 'needlink-90a7c.firebasestorage.app',
-    measurementId: 'G-2973V0V3WE',
+    apiKey: 'AIzaSyAiKiiKqKg6dliZXV2rZ-FVR1SFJa93e2k',
+    appId: '1:290021143671:web:656c716bb2174553464272',
+    messagingSenderId: '290021143671',
+    projectId: 'needlink-1a854',
+    authDomain: 'needlink-1a854.firebaseapp.com',
+    storageBucket: 'needlink-1a854.firebasestorage.app',
   );
+
 }
