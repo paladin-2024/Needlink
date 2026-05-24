@@ -1,0 +1,4 @@
+[build]
+  base    = "needlink_web"
+  command = "npm run build"
+  publish = "dist"
