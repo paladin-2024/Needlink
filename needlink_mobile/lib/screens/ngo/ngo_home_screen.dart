@@ -291,7 +291,7 @@ class _IncomingPledgeCardState extends ConsumerState<_IncomingPledgeCard> {
     setState(() => _acting = true);
     try {
       final client = ref.read(supabaseProvider);
-      final userId = client.auth.currentUser!.id;
+      final userId = client.auth.currentUser?.id ?? '';
       await client.from('pledges').update({'status': 'confirmed'}).eq('id', widget.pledge.id);
       await client.from('deliveries').insert({'pledge_id': widget.pledge.id, 'confirmed_by': userId});
       widget.onRefresh();

@@ -72,8 +72,10 @@ class _CreateNeedScreenState extends ConsumerState<CreateNeedScreen> {
   Future<void> _submit() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final user = Supabase.instance.client.auth.currentUser!;
-      final ngoData = await Supabase.instance.client.from('ngos').select('id').eq('admin_id', user.id).single();
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) { setState(() { _error = 'Not signed in'; _loading = false; }); return; }
+      final ngoData = await Supabase.instance.client.from('ngos').select('id').eq('admin_id', user.id).maybeSingle();
+      if (ngoData == null) { setState(() { _error = 'No NGO profile found'; _loading = false; }); return; }
       await Supabase.instance.client.from('donation_needs').insert({
         'ngo_id': ngoData['id'],
         'item_name': _itemCtrl.text.trim(),

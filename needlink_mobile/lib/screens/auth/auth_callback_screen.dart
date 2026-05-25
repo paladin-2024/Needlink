@@ -48,24 +48,7 @@ class _AuthCallbackScreenState extends State<AuthCallbackScreen> {
       return;
     }
 
-    // Use cached role for instant navigation (returning users).
-    final cachedRole = prefs.getString('cached_role');
-    if (cachedRole != null) {
-      context.go(cachedRole == 'ngo_admin' ? '/ngo' : '/donor');
-      // Refresh cache silently in background.
-      Supabase.instance.client
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle()
-          .then((data) async {
-        final freshRole = data?['role'] as String? ?? cachedRole;
-        await prefs.setString('cached_role', freshRole);
-      });
-      return;
-    }
-
-    // First-time OAuth: fetch or create profile.
+    // Always fetch fresh role from DB — never trust stale cached_role on OAuth.
     var profileData = await Supabase.instance.client
         .from('profiles')
         .select('role')
@@ -73,15 +56,15 @@ class _AuthCallbackScreenState extends State<AuthCallbackScreen> {
         .maybeSingle();
 
     if (profileData == null) {
-      final role = prefs.getString('pending_oauth_role') ?? 'donor';
+      final pendingRole = prefs.getString('pending_oauth_role') ?? 'donor';
       final name = (user.userMetadata?['full_name'] as String?)
           ?? (user.userMetadata?['name'] as String?)
           ?? '';
       await Supabase.instance.client.from('profiles').upsert({
-        'id': user.id, 'full_name': name, 'role': role,
+        'id': user.id, 'full_name': name, 'role': pendingRole,
       }, onConflict: 'id', ignoreDuplicates: true);
       await prefs.remove('pending_oauth_role');
-      profileData = {'role': role};
+      profileData = {'role': pendingRole};
     }
 
     if (!mounted) return;

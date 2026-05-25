@@ -220,6 +220,9 @@ class DonorProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     _SettingsGroup(shadow: _shadow, items: [
                       _SettingsTile(HugeIcons.strokeRoundedLogout01, 'Sign Out', () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('cached_role');
+                        await prefs.remove('pending_oauth_role');
                         await Supabase.instance.client.auth.signOut();
                         if (context.mounted) context.go('/login');
                       }, danger: true),
@@ -397,9 +400,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       final url = await StorageService.uploadAvatar(widget.profile.id);
       if (url != null) setState(() => _newAvatarUrl = url);
     } catch (e) {
-      setState(() => _error = 'Avatar upload failed: $e');
+      if (mounted) setState(() => _error = 'Avatar upload failed: $e');
     } finally {
-      setState(() => _uploadingAvatar = false);
+      if (mounted) setState(() => _uploadingAvatar = false);
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers.dart';
 import '../../theme.dart';
@@ -61,6 +62,9 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                       ))),
                       TextButton.icon(
                         onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('cached_role');
+                          await prefs.remove('pending_oauth_role');
                           await Supabase.instance.client.auth.signOut();
                           if (context.mounted) context.go('/login');
                         },
@@ -244,6 +248,9 @@ class _NgoSettingsScreenState extends ConsumerState<NgoSettingsScreen> {
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('cached_role');
+                          await prefs.remove('pending_oauth_role');
                           await Supabase.instance.client.auth.signOut();
                           if (context.mounted) context.go('/login');
                         },

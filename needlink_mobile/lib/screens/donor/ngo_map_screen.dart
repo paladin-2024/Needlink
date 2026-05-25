@@ -21,6 +21,9 @@ class _NgoMapScreenState extends ConsumerState<NgoMapScreen> {
   final _mapCtrl = MapController();
 
   @override
+  void dispose() { _mapCtrl.dispose(); super.dispose(); }
+
+  @override
   Widget build(BuildContext context) {
     final ngosAsync = ref.watch(allNgosProvider);
 

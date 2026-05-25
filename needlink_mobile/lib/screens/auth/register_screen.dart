@@ -53,6 +53,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       final res = await Supabase.instance.client.auth.signUp(
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
+        data: {
+          'full_name': _nameCtrl.text.trim(),
+          'role': _role,
+        },
       );
 
       // Supabase silently "succeeds" for existing emails — identities is empty in that case.
@@ -62,6 +66,37 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           _error = 'An account with this email already exists. Sign in instead.';
           _loading = false;
         });
+        return;
+      }
+
+      // If session is null, Supabase requires email confirmation before the
+      // user has an active session. We can't write to the DB yet (no auth.uid()).
+      if (res.session == null) {
+        setState(() {
+          _error = null;
+          _loading = false;
+        });
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Check your email'),
+            content: Text(
+              'A confirmation link was sent to ${_emailCtrl.text.trim()}.\n\n'
+              'Click it to activate your account, then sign in.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.go('/login');
+                },
+                child: const Text('Go to sign in'),
+              ),
+            ],
+          ),
+        );
         return;
       }
 

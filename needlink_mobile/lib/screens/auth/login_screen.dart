@@ -49,11 +49,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
       );
+      final user = res.user!;
       if (!mounted) return;
-      final profile = await Supabase.instance.client
-          .from('profiles').select('role').eq('id', res.user!.id).maybeSingle();
+      var profile = await Supabase.instance.client
+          .from('profiles').select('role').eq('id', user.id).maybeSingle();
+      if (profile == null) {
+        // Profile missing — happens when email confirmation was required at signup.
+        // Recover role from user metadata saved during signUp.
+        final metaRole = user.userMetadata?['role'] as String? ?? 'donor';
+        final metaName = (user.userMetadata?['full_name'] as String?)
+            ?? (user.userMetadata?['name'] as String?) ?? '';
+        await Supabase.instance.client.from('profiles').upsert({
+          'id': user.id, 'full_name': metaName, 'role': metaRole,
+        }, onConflict: 'id');
+        profile = {'role': metaRole};
+      }
       if (!mounted) return;
-      final role = profile?['role'] as String? ?? 'donor';
+      final role = profile['role'] as String? ?? 'donor';
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('cached_role', role);
       if (!mounted) return;

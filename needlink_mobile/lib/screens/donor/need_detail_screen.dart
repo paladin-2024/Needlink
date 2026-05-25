@@ -26,6 +26,8 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
   bool _loading = true;
   bool _pledging = false;
   bool _success = false;
+  bool _alreadyPledged = false;
+  String? _existingPledgeId;
   String? _error;
   int _quantity = 1;
   DateTime? _deliveryDate;
@@ -38,7 +40,33 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
     try {
       final data = await Supabase.instance.client
           .from('donation_needs').select('*, ngo:ngos(*)').eq('id', widget.needId).single();
-      setState(() { _need = DonationNeed.fromJson(data); _loading = false; });
+      final user = Supabase.instance.client.auth.currentUser;
+      bool alreadyPledged = false;
+      String? existingPledgeId;
+      if (user != null) {
+        final existing = await Supabase.instance.client
+            .from('pledges').select('id, quantity, delivery_date, notes')
+            .eq('need_id', widget.needId).eq('donor_id', user.id)
+            .maybeSingle();
+        if (existing != null) {
+          alreadyPledged = true;
+          existingPledgeId = existing['id'] as String;
+          final qty = existing['quantity'] as int? ?? 1;
+          final dateStr = existing['delivery_date'] as String?;
+          final notes = existing['notes'] as String? ?? '';
+          setState(() {
+            _quantity = qty;
+            _deliveryDate = dateStr != null ? DateTime.tryParse(dateStr) : null;
+            _notesCtrl.text = notes;
+          });
+        }
+      }
+      setState(() {
+        _need = DonationNeed.fromJson(data);
+        _alreadyPledged = alreadyPledged;
+        _existingPledgeId = existingPledgeId;
+        _loading = false;
+      });
     } catch (e) {
       setState(() { _loading = false; _error = e.toString(); });
     }
@@ -48,12 +76,21 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
     if (_need == null || _deliveryDate == null) return;
     setState(() { _pledging = true; _error = null; });
     try {
-      final user = Supabase.instance.client.auth.currentUser!;
-      await Supabase.instance.client.from('pledges').insert({
-        'need_id': _need!.id, 'donor_id': user.id, 'quantity': _quantity,
-        'delivery_date': DateFormat('yyyy-MM-dd').format(_deliveryDate!),
-        'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text.trim() : null,
-      });
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) { setState(() { _error = 'Not signed in'; _pledging = false; }); return; }
+      if (_existingPledgeId != null) {
+        await Supabase.instance.client.from('pledges').update({
+          'quantity': _quantity,
+          'delivery_date': DateFormat('yyyy-MM-dd').format(_deliveryDate!),
+          'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text.trim() : null,
+        }).eq('id', _existingPledgeId!);
+      } else {
+        await Supabase.instance.client.from('pledges').insert({
+          'need_id': _need!.id, 'donor_id': user.id, 'quantity': _quantity,
+          'delivery_date': DateFormat('yyyy-MM-dd').format(_deliveryDate!),
+          'notes': _notesCtrl.text.isNotEmpty ? _notesCtrl.text.trim() : null,
+        });
+      }
       // quantity_pledged and status are updated atomically by a DB trigger — not here.
       ref.invalidate(myPledgesProvider);
       ref.invalidate(donationNeedsProvider);
@@ -330,6 +367,24 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Already pledged — update mode info
+            if (_alreadyPledged && !_success)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDFF), borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: kPrimary.withAlpha(60)),
+                ),
+                child: Row(children: [
+                  const Icon(HugeIcons.strokeRoundedCheckmarkBadge01, size: 18, color: kPrimary),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(
+                    "You've pledged to this need. Use the form below to update your pledge.",
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600),
+                  )),
+                ]),
+              ),
+
             // Success banner
             if (_success)
               Container(
@@ -381,6 +436,7 @@ class _NeedDetailScreenState extends ConsumerState<NeedDetailScreen> {
       bottomSheet: isClosed || _success ? null : _PledgeSheet(
         remaining: remaining, quantity: _quantity, deliveryDate: _deliveryDate,
         notesCtrl: _notesCtrl, pledging: _pledging, need: need,
+        isUpdate: _alreadyPledged,
         onQuantityChanged: (v) => setState(() => _quantity = v),
         onDateChanged: (d) => setState(() => _deliveryDate = d),
         onSubmit: _submitPledge,
@@ -396,6 +452,7 @@ class _PledgeSheet extends StatelessWidget {
   final DateTime? deliveryDate;
   final TextEditingController notesCtrl;
   final bool pledging;
+  final bool isUpdate;
   final DonationNeed need;
   final ValueChanged<int> onQuantityChanged;
   final ValueChanged<DateTime> onDateChanged;
@@ -404,6 +461,7 @@ class _PledgeSheet extends StatelessWidget {
   const _PledgeSheet({
     required this.remaining, required this.quantity, required this.deliveryDate,
     required this.notesCtrl, required this.pledging, required this.need,
+    required this.isUpdate,
     required this.onQuantityChanged, required this.onDateChanged, required this.onSubmit,
   });
 
@@ -419,7 +477,7 @@ class _PledgeSheet extends StatelessWidget {
     child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: kMuted, borderRadius: BorderRadius.circular(2)))),
       const SizedBox(height: 14),
-      Text('Make a Pledge', style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w800, color: kForeground)),
+      Text(isUpdate ? 'Update Pledge' : 'Make a Pledge', style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w800, color: kForeground)),
       const SizedBox(height: 16),
 
       Row(children: [
@@ -454,7 +512,12 @@ class _PledgeSheet extends StatelessWidget {
       GestureDetector(
         onTap: () async {
           DateTime lastDate;
-          try { lastDate = DateTime.parse(need.deadline); } catch (_) { lastDate = DateTime.now().add(const Duration(days: 60)); }
+          try {
+            lastDate = DateTime.parse(need.deadline);
+            if (lastDate.isBefore(DateTime.now())) {
+              lastDate = DateTime.now().add(const Duration(days: 30));
+            }
+          } catch (_) { lastDate = DateTime.now().add(const Duration(days: 60)); }
           final d = await showDatePicker(
             context: context,
             initialDate: DateTime.now().add(const Duration(days: 3)),
@@ -511,7 +574,7 @@ class _PledgeSheet extends StatelessWidget {
           ),
           child: pledging
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : Text('Submit Pledge', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700)),
+              : Text(isUpdate ? 'Update Pledge' : 'Submit Pledge', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700)),
         ),
       ),
     ]),

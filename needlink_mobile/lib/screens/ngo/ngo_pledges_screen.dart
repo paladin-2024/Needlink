@@ -65,10 +65,11 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final client = ref.read(supabaseProvider);
-      final userId = client.auth.currentUser!.id;
+      final userId = client.auth.currentUser?.id ?? '';
       final ngoData = await client.from('ngos').select('id').eq('admin_id', userId).maybeSingle();
       if (ngoData == null) { setState(() => _loading = false); return; }
       _ngoId = ngoData['id'];
@@ -92,7 +93,7 @@ class _NgoPledgesScreenState extends ConsumerState<NgoPledgesScreen> {
     setState(() => _acting = pledge['id']);
     try {
       final client = ref.read(supabaseProvider);
-      final userId = client.auth.currentUser!.id;
+      final userId = client.auth.currentUser?.id ?? '';
       await client.from('pledges').update({'status': action}).eq('id', pledge['id']);
       if (action == 'confirmed') {
         await client.from('deliveries').insert({'pledge_id': pledge['id'], 'confirmed_by': userId});
