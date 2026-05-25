@@ -65,16 +65,24 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         return;
       }
 
-      await Supabase.instance.client.from('profiles').upsert({
-        'id': user.id, 'full_name': _nameCtrl.text.trim(),
-        'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
-      }, onConflict: 'id', ignoreDuplicates: true);
+      try {
+        await Supabase.instance.client.from('profiles').upsert({
+          'id': user.id, 'full_name': _nameCtrl.text.trim(),
+          'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
+        }, onConflict: 'id', ignoreDuplicates: true);
+      } on PostgrestException catch (e) {
+        if (e.code != '23505') rethrow;
+      }
 
       if (_role == 'ngo_admin') {
-        await Supabase.instance.client.from('ngos').insert({
-          'admin_id': user.id, 'name': _ngoNameCtrl.text.trim(),
-          'location': _ngoLocCtrl.text.trim(), 'contact_email': _emailCtrl.text.trim(),
-        });
+        try {
+          await Supabase.instance.client.from('ngos').insert({
+            'admin_id': user.id, 'name': _ngoNameCtrl.text.trim(),
+            'location': _ngoLocCtrl.text.trim(), 'contact_email': _emailCtrl.text.trim(),
+          });
+        } on PostgrestException catch (e) {
+          if (e.code != '23505') rethrow;
+        }
       }
       if (!mounted) return;
       final prefs = await SharedPreferences.getInstance();
