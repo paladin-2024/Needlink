@@ -65,14 +65,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         return;
       }
 
-      try {
-        await Supabase.instance.client.from('profiles').upsert({
-          'id': user.id, 'full_name': _nameCtrl.text.trim(),
-          'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
-        }, onConflict: 'id', ignoreDuplicates: true);
-      } on PostgrestException catch (e) {
-        if (e.code != '23505') rethrow;
-      }
+      await Supabase.instance.client.from('profiles').upsert({
+        'id': user.id, 'full_name': _nameCtrl.text.trim(),
+        'role': _role, 'phone': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text.trim() : null,
+      }, onConflict: 'id');
 
       if (_role == 'ngo_admin') {
         try {
