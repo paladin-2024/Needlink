@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Search, AlertCircle } from 'lucide-react'
+import { Search, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/Toast'
 import type { PledgeStatus } from '../../types'
 
 interface Pledge {
@@ -36,11 +37,13 @@ function PageError({ message, onRetry }: { message: string; onRetry: () => void 
 }
 
 export default function PledgesOverview() {
+  const { toast } = useToast()
   const [pledges, setPledges]     = useState<Pledge[]>([])
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState('')
   const [search, setSearch]       = useState('')
   const [status, setStatus]       = useState<PledgeStatus | 'all'>('all')
+  const [acting, setActing]       = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -63,6 +66,26 @@ export default function PledgesOverview() {
       setLoadError(err instanceof Error ? err.message : 'Failed to load pledges.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function actOnPledge(id: string, newStatus: 'confirmed' | 'rejected') {
+    setActing(id)
+    try {
+      const { error } = await supabase
+        .from('pledges')
+        .update({ status: newStatus })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+      setPledges(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p))
+      toast(
+        newStatus === 'confirmed' ? 'Pledge confirmed.' : 'Pledge rejected.',
+        newStatus === 'confirmed' ? 'success' : 'info'
+      )
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Action failed.', 'error')
+    } finally {
+      setActing(null)
     }
   }
 
@@ -147,17 +170,18 @@ export default function PledgesOverview() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: '#F8FAFB', borderBottom: '1px solid #F1F5F9' }}>
-                {['Donor', 'Item', 'NGO', 'Qty', 'Delivery', 'Pledged', 'Status'].map(h => (
+                {['Donor', 'Item', 'NGO', 'Qty', 'Delivery', 'Pledged', 'Status', 'Actions'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No pledges found.</td></tr>
+                <tr><td colSpan={8} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No pledges found.</td></tr>
               )}
               {filtered.map(pledge => {
                 const s = STATUS_STYLES[pledge.status]
+                const isActing = acting === pledge.id
                 return (
                   <tr key={pledge.id} className="hover:bg-[#F8FAFB] transition-colors" style={{ borderTop: '1px solid #F1F5F9' }}>
                     <td className="px-5 py-4 font-semibold text-[#164E63]">{pledge.profiles?.full_name ?? '—'}</td>
@@ -171,6 +195,36 @@ export default function PledgesOverview() {
                         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                         {pledge.status}
                       </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      {pledge.status === 'pending' ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => actOnPledge(pledge.id, 'confirmed')}
+                            disabled={isActing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16A34A] text-white text-xs font-semibold hover:bg-[#15803D] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {isActing
+                              ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                              : <CheckCircle size={11} />
+                            }
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => actOnPledge(pledge.id, 'rejected')}
+                            disabled={isActing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FECACA] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {isActing
+                              ? <div className="w-3 h-3 border border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                              : <XCircle size={11} />
+                            }
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[#CBD5E1] font-mono">—</span>
+                      )}
                     </td>
                   </tr>
                 )
