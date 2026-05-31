@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Building2, CheckCircle, MoreHorizontal, Search, AlertCircle } from 'lucide-react'
+import { BadgeCheck, Building2, CheckCircle, Trash2, Search, AlertCircle } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
@@ -34,6 +34,7 @@ export default function NgoManagement() {
   const [loadError, setLoadError] = useState('')
   const [search, setSearch]       = useState('')
   const [filter, setFilter]       = useState<'all' | 'verified' | 'pending'>('all')
+  const [deleting, setDeleting]   = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -74,6 +75,7 @@ export default function NgoManagement() {
 
   async function reject(id: string, name: string) {
     if (!confirm(`Reject and remove NGO "${name}"? This cannot be undone.`)) return
+    setDeleting(id)
     try {
       const { error } = await supabase.from('ngos').delete().eq('id', id)
       if (error) throw new Error(error.message)
@@ -81,6 +83,23 @@ export default function NgoManagement() {
       toast(`"${name}" has been removed.`, 'info')
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to reject NGO.', 'error')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  async function deleteNgo(id: string, name: string) {
+    if (!confirm(`Delete NGO "${name}"? This will remove the organisation and all its data. This cannot be undone.`)) return
+    setDeleting(id)
+    try {
+      const { error } = await supabase.from('ngos').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+      setNgos(prev => prev.filter(n => n.id !== id))
+      toast(`"${name}" has been deleted.`, 'info')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to delete NGO.', 'error')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -237,20 +256,34 @@ export default function NgoManagement() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => verify(ngo.id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0891B2] text-white text-xs font-semibold hover:bg-[#0E7490] transition-colors cursor-pointer"
+                          disabled={deleting === ngo.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0891B2] text-white text-xs font-semibold hover:bg-[#0E7490] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <CheckCircle size={11} /> Verify
                         </button>
                         <button
                           onClick={() => reject(ngo.id, ngo.name)}
-                          className="px-3 py-1.5 rounded-lg border border-[#EF4444] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer"
+                          disabled={deleting === ngo.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#EF4444] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
+                          {deleting === ngo.id
+                            ? <div className="w-3 h-3 border border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                            : <Trash2 size={11} />
+                          }
                           Reject
                         </button>
                       </div>
                     ) : (
-                      <button className="p-1.5 text-[#CBD5E1] hover:text-[#64748B] transition-colors cursor-pointer rounded-lg hover:bg-[#F1F5F9]">
-                        <MoreHorizontal size={15} />
+                      <button
+                        onClick={() => deleteNgo(ngo.id, ngo.name)}
+                        disabled={deleting === ngo.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FECACA] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {deleting === ngo.id
+                          ? <div className="w-3 h-3 border border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                          : <Trash2 size={11} />
+                        }
+                        Delete
                       </button>
                     )}
                   </td>

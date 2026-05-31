@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Search, AlertCircle } from 'lucide-react'
+import { Search, AlertCircle, Trash2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/Toast'
 
 interface Donor {
   id: string
@@ -23,10 +24,12 @@ function PageError({ message, onRetry }: { message: string; onRetry: () => void 
 }
 
 export default function UserManagement() {
+  const { toast } = useToast()
   const [donors, setDonors]       = useState<Donor[]>([])
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState('')
   const [search, setSearch]       = useState('')
+  const [deleting, setDeleting]   = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -52,6 +55,21 @@ export default function UserManagement() {
       setLoadError(err instanceof Error ? err.message : 'Failed to load donors.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function deleteUser(id: string, name: string) {
+    if (!confirm(`Delete donor "${name}"? This will remove their profile and cannot be undone.`)) return
+    setDeleting(id)
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+      setDonors(prev => prev.filter(d => d.id !== id))
+      toast(`"${name}" has been removed.`, 'info')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to delete user.', 'error')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -144,14 +162,14 @@ export default function UserManagement() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: '#F8FAFB', borderBottom: '1px solid #F1F5F9' }}>
-                {['Donor', 'Joined', 'Pledges', 'Activity'].map(h => (
+                {['Donor', 'Joined', 'Pledges', 'Activity', 'Actions'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={4} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No donors found.</td></tr>
+                <tr><td colSpan={5} className="px-5 py-10 text-center text-[#94A3B8] text-sm">No donors found.</td></tr>
               )}
               {filtered.map(donor => (
                 <tr key={donor.id} className="hover:bg-[#F8FAFB] transition-colors" style={{ borderTop: '1px solid #F1F5F9' }}>
@@ -178,6 +196,19 @@ export default function UserManagement() {
                         No pledges
                       </span>
                     )}
+                  </td>
+                  <td className="px-5 py-4">
+                    <button
+                      onClick={() => deleteUser(donor.id, donor.full_name)}
+                      disabled={deleting === donor.id}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FECACA] text-[#EF4444] text-xs font-semibold hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {deleting === donor.id
+                        ? <div className="w-3 h-3 border border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                        : <Trash2 size={11} />
+                      }
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
