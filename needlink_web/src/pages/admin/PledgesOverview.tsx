@@ -197,8 +197,8 @@ export default function PledgesOverview() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      {pledge.status === 'pending' ? (
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        {pledge.status !== 'confirmed' && (
                           <button
                             onClick={() => actOnPledge(pledge.id, 'confirmed')}
                             disabled={isActing}
@@ -210,6 +210,8 @@ export default function PledgesOverview() {
                             }
                             Confirm
                           </button>
+                        )}
+                        {pledge.status !== 'rejected' && (
                           <button
                             onClick={() => actOnPledge(pledge.id, 'rejected')}
                             disabled={isActing}
@@ -221,10 +223,8 @@ export default function PledgesOverview() {
                             }
                             Reject
                           </button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-[#CBD5E1] font-mono">—</span>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )
